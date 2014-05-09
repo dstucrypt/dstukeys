@@ -1,0 +1,240 @@
+<html>
+<head>
+    <title>DSTU</title>
+</head>
+<body>
+    <script type="text/javascript" src="/js/uadstu.js"></script>
+    <script type="text/javascript" src="/js/hex.js"></script>
+    <script type="text/javascript" src="/js/int10.js"></script>
+    <script type="text/javascript" src="/js/asn1.js"></script>
+
+    <div id="drop_zone">Drop files here</div>
+    <input id='pw_in' type="password" />
+    <pre id="pem_out" ></pem>
+
+    <style>
+    #drop_zone {
+        border: 2px dashed #bbb;
+        -moz-border-radius: 5px;
+        -webkit-border-radius: 5px;
+        border-radius: 5px;
+        padding: 25px;
+        text-align: center;
+        font: 20pt bold 'Vollkorn';
+        color: #bbb;
+    }
+    </style>
+    <script>
+        var read_buf = function(ptr, sz) {
+            var ret = [], x=0;
+            for(var i = 0; i < sz; i++) {
+                x = getValue(ptr + i, 'i8');
+                if(x < 0) {
+                    x = 256 + x;
+                }
+                ret.push(x);
+            }
+            return ret;
+        }
+        var numberHex = function(numbrs, line) {
+            var hex = [], h;
+            for(var i = 0; i < numbrs.length; i++) {
+                h = numbrs[i].toString(16);
+                if(h.length == 1) {
+                    h = "0" + h;
+                }
+                hex.push(h); 
+                if( (i > 1) && (line !== undefined) && ((i%line) == line-1)) {
+                    hex.push('\n');
+                }
+            }
+            return hex.join("");
+        }
+        var B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+        var numberB64 = function(numbrs, line) {
+            var ret = [], b1, b2, b3, e1, e2, e3, e4, i=0;
+            while(i < numbrs.length) {
+
+                b1 = numbrs[i++];
+                b2 = numbrs[i++];
+                b3 = numbrs[i++];
+
+                e1 = b1 >> 2;
+                e2 = ((b1 & 3) << 4) | (b2 >> 4);
+                e3 = ((b2 & 15) << 2) | (b3 >> 6);
+                e4 = b3 & 63;
+
+                ret.push(B64.charAt(e1));
+                ret.push(B64.charAt(e2));
+                ret.push(B64.charAt(e3));
+                ret.push(B64.charAt(e4));
+
+                if( (i > 0) && (line !== undefined) && ((i%line) == 0)) {
+                    ret.push('\n');
+                }
+            }
+            return ret.join("");
+        }
+        var convert_password = function(pw, raw) {
+            var vm_out = allocate(32, 'i8', ALLOC_STACK);
+            var vm_pw = allocate(intArrayFromString(pw), 'i8', ALLOC_STACK)
+            var args = [vm_pw, pw.length, vm_out], argtypes = ['number', 'number', 'number'];
+
+            var ret = Module.ccall('convert_password', 'number', argtypes, args);
+            if(ret == 0) {
+                if(raw === true) {
+                    return vm_out;
+                } else {
+                    return read_buf(vm_out, 32);
+                }
+            }
+        }
+        var decode_data = function(data, pad, password, mac) {
+            var args, bdata, bkey, bmac, rbuf,
+                argtypes = ['number', 'number', 'number', 'number'];
+
+            bkey = convert_password(password, true);
+            rbuf = allocate(data.length + pad.length, 'i8', ALLOC_STACK);
+            args = [asnbuf([data, pad]), data.length, bkey, asnbuf(mac), rbuf];
+
+            var ret = Module.ccall('decode_data', 'number', argtypes, args)
+            if(ret == 0) {
+                return read_buf(rbuf, data.length, 'hex');
+            }
+        }
+        var asnbuf = function(asn_l) {
+            var buf_len = 0, buf, start, end, off = 0,
+                start, end;
+
+            if(asn_l.stream !== undefined) {
+                asn_l = [asn_l];
+            }
+
+            for(var i = 0; i < asn_l.length; i++) {
+                buf_len += asn_l[i].length;
+            }
+
+            buf = allocate(buf_len, 'i8', ALLOC_STACK);
+
+            for(var j = 0; j < asn_l.length; j++) {
+                var asn = asn_l[j], i;
+                start = asn.posContent();
+                for(i = 0; i < asn.length; i++) {
+                    setValue(buf + i + off, asn.stream.get(start + i), 'i8');
+                }
+                off += i;
+            }
+            return buf;
+        }
+
+        var OID_IIT = '1.3.6.1.4.1.19398.1.1.1.2';
+        var PEM_KEY_B = '-----BEGIN PRIVATE KEY-----';
+            PEM_KEY_E = '-----END PRIVATE KEY-----';
+
+        var parse_helper = function(indata) {
+            var data = indata;
+            if(data instanceof String) {
+                data = Hex.decode(data);
+            }
+
+            var asn1 = ASN1.decode(data), head, head1, body, mac, pad;
+            if(asn1.typeName() !== 'SEQUENCE' || asn1.sub.length !== 2) {
+                throw new Error();
+            }
+            head = asn1.sub[0];
+            if(head.typeName() !== 'SEQUENCE' || head.sub.length !== 2) {
+                throw new Error();
+            }
+            oid = head.sub[0];
+            if(oid.typeName() !== 'OBJECT_IDENTIFIER' || oid.content() !== OID_IIT) {
+                throw new Error(oid.content());
+            }
+            head1 = head.sub[1];
+            if(head1.typeName() !== 'SEQUENCE' || head1.sub.length !== 2) {
+                throw new Error();
+            }
+            mac = head1.sub[0];
+            pad = head1.sub[1];
+            if(mac.typeName() !== 'OCTET_STRING' || pad.typeName() != 'OCTET_STRING') {
+                throw new Error(mac.typeName());
+            }
+            if(mac.length !== 4) {
+                throw new Error("Invalid mac len " + mac.length);
+            }
+            if(pad.length >= 8) {
+                throw new Error("Invalid pad len " + pad.length);
+            }
+
+            body = asn1.sub[1];
+            if(body.typeName() !== 'OCTET_STRING') {
+                throw new Error(body.typeName());
+            }
+
+            return {
+                "mac": mac,
+                "pad": pad,
+                "body": body,
+            }
+        }
+
+        var decode_import = function(indata, password) {
+            var parsed = parse_helper(indata),
+                decoded = decode_data(parsed.body, parsed.pad, password, parsed.mac)
+
+            if(decoded == undefined) {
+                return;
+            }
+            return numberB64(decoded, 42);
+        }
+    </script>
+
+    <script>
+    function handleFileSelect(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+
+        var files = evt.dataTransfer.files; // FileList object.
+        var password = document.getElementById('pw_in').value;
+        if((password === undefined) || password.length == 0) {
+            return;
+        }
+
+        // files is a FileList of File objects. List some properties.
+        var output = [];
+        for (var i = 0, f; f = files[i]; i++) {
+            var reader = new FileReader();
+            reader.onload = function(evt) {
+                var u8 = new Uint8Array(evt.target.result),
+                    data = decode_import(u8, password);
+
+                if(data === undefined) {
+                    decode_result(false);
+                } else {
+                    decode_result(true, data);
+                }
+            }
+            reader.readAsArrayBuffer(f);
+        }
+    }
+
+    function handleDragOver(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+    }
+
+    // Setup the dnd listeners.
+    var dropZone = document.getElementById('drop_zone');
+    dropZone.addEventListener('dragover', handleDragOver, false);
+    dropZone.addEventListener('drop', handleFileSelect, false);
+
+    function decode_result(status, data) {
+        if(status == false) {
+            document.getElementById('pem_out').innerText = 'Err';
+        } else {
+            document.getElementById('pem_out').innerText = [
+                PEM_KEY_B, data, PEM_KEY_E].join('\n');
+        }
+    }
+    </script>
+</body>
