@@ -168,6 +168,9 @@
             if(decoded == undefined) {
                 return;
             }
+            if(parser.is_valid(decoded) != true) {
+                return;
+            }
             return numberB64(decoded, 42);
         }
     </script>

@@ -5,11 +5,32 @@ var Keycoder = function() {
     OID_PBKDF2 = '1.2.840.113549.1.5.12',
     OID_GOST_34311_HMAC = '1.2.804.2.1.1.1.1.1.2',
     OID_GOST_28147_CFB = '1.2.804.2.1.1.1.1.1.1.3',
+    OID_DSTU_4145_LE = '1.2.804.2.1.1.1.1.3.1.1',
     PEM_KEY_B = '-----BEGIN PRIVATE KEY-----',
     PEM_KEY_E = '-----END PRIVATE KEY-----',
     ob = {
         to_pem: function(b64) {
             return [PEM_KEY_B, b64, PEM_KEY_E].join('\n');
+        },
+        is_valid : function(indata) {
+            var asn1 = ASN1.decode(indata), head, head1, ver, oid;
+            if((asn1.typeName() !== 'SEQUENCE') || (asn1.sub.length < 2)) {
+                return false;
+            }
+            head = asn1.sub[1];
+            ver = asn1.sub[0];
+            v = ver
+            if(ver.content() !== 0) {
+                return false;
+            }
+            if(head.typeName() !== 'SEQUENCE') {
+                return false;
+            }
+            oid = head.sub[0];
+            if(oid.content() !== OID_DSTU_4145_LE) {
+                return false;
+            }
+            return true;
         },
         iit_parse: function(asn1) {
             var head = asn1.sub[0],
@@ -109,5 +130,6 @@ var Keycoder = function() {
     return {
         "parse": ob.guess_parse,
         "to_pem": ob.to_pem,
+        "is_valid": ob.is_valid
     }
 }
