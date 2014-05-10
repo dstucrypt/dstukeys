@@ -92,7 +92,7 @@
             var vm_pw = allocate(intArrayFromString(pw), 'i8', ALLOC_STACK)
             var args = [vm_pw, pw.length, vm_out], argtypes = ['number', 'number', 'number'];
 
-            var ret = Module.ccall('convert_password', 'number', argtypes, args);
+            var ret = Module.ccall('iit_convert_password', 'number', argtypes, args);
             if(ret == 0) {
                 if(raw === true) {
                     return vm_out;
@@ -109,7 +109,7 @@
             rbuf = allocate(data.length + pad.length, 'i8', ALLOC_STACK);
             args = [asnbuf([data, pad]), data.length, bkey, asnbuf(mac), rbuf];
 
-            var ret = Module.ccall('decode_data', 'number', argtypes, args)
+            var ret = Module.ccall('iit_decode_data', 'number', argtypes, args)
             if(ret == 0) {
                 return read_buf(rbuf, data.length, 'hex');
             }
