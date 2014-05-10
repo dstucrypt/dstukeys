@@ -7,6 +7,7 @@
     <script type="text/javascript" src="/js/hex.js"></script>
     <script type="text/javascript" src="/js/int10.js"></script>
     <script type="text/javascript" src="/js/asn1.js"></script>
+    <script type="text/javascript" src="/js/keycoder.js"></script>
 
     <h1>Key converter</h1>
 
@@ -87,31 +88,50 @@
             }
             return ret.join("");
         }
-        var convert_password = function(pw, raw) {
-            var vm_out = allocate(32, 'i8', ALLOC_STACK);
-            var vm_pw = allocate(intArrayFromString(pw), 'i8', ALLOC_STACK)
-            var args = [vm_pw, pw.length, vm_out], argtypes = ['number', 'number', 'number'];
+        var convert_password = function(parsed, pw, raw) {
+            var vm_out, vm_pw, vm_salt, args, argtypes, ret = null;
+            vm_out = allocate(32, 'i8', ALLOC_STACK);
+            vm_pw = allocate(intArrayFromString(pw), 'i8', ALLOC_STACK);
+            if(parsed.format == 'IIT') {
+                args = [vm_pw, pw.length, vm_out];
+                argtypes = ['number', 'number', 'number'];
 
-            var ret = Module.ccall('iit_convert_password', 'number', argtypes, args);
+                ret = Module.ccall('iit_convert_password', 'number', argtypes, args);
+            }
+            if(parsed.format == 'PBES2') {
+                args = [vm_pw, pw.length, asnbuf(parsed.salt), parsed.salt.length, parsed.iters, vm_out];
+                argtypes = ['number', 'number', 'number', 'number', 'number'];
+                ret = Module.ccall('pbes2_convert_password', 'number', argtypes, args);
+            }
             if(ret == 0) {
                 if(raw === true) {
                     return vm_out;
                 } else {
                     return read_buf(vm_out, 32);
                 }
+            } else {
+                throw new Error("Failed to convert key");
             }
         }
-        var decode_data = function(data, pad, password, mac) {
-            var args, bdata, bkey, bmac, rbuf,
+        var decode_data = function(parsed, pw) {
+            var args, argtypes, bdata, bkey, bmac, rbuf, ret;
+
+            bkey = convert_password(parsed, pw, true);
+            if(parsed.format === 'IIT') {
+                rbuf = allocate(parsed.body.length + parsed.pad.length, 'i8', ALLOC_STACK);
+                args = [asnbuf([parsed.body, parsed.pad]), parsed.body.length, bkey, asnbuf(parsed.mac), rbuf];
                 argtypes = ['number', 'number', 'number', 'number'];
+                ret = Module.ccall('iit_decode_data', 'number', argtypes, args)
+            }
+            if(parsed.format == 'PBES2') {
+                rbuf = allocate(parsed.body.length, 'i8', ALLOC_STACK);
+                args = [asnbuf(parsed.body), parsed.body.length, bkey, asnbuf(parsed.iv), asnbuf(parsed.sbox), rbuf];
+                argtypes = ['number', 'number', 'number', 'number', 'number', 'number'];
+                ret = Module.ccall('pbes2_decode_data', 'number', argtypes, args);
 
-            bkey = convert_password(password, true);
-            rbuf = allocate(data.length + pad.length, 'i8', ALLOC_STACK);
-            args = [asnbuf([data, pad]), data.length, bkey, asnbuf(mac), rbuf];
-
-            var ret = Module.ccall('iit_decode_data', 'number', argtypes, args)
+            }
             if(ret == 0) {
-                return read_buf(rbuf, data.length, 'hex');
+                return read_buf(rbuf, parsed.body.length, 'hex');
             }
         }
         var asnbuf = function(asn_l) {
@@ -139,59 +159,11 @@
             return buf;
         }
 
-        var OID_IIT = '1.3.6.1.4.1.19398.1.1.1.2';
-        var PEM_KEY_B = '-----BEGIN PRIVATE KEY-----';
-            PEM_KEY_E = '-----END PRIVATE KEY-----';
-
-        var parse_helper = function(indata) {
-            var data = indata;
-            if(data instanceof String) {
-                data = Hex.decode(data);
-            }
-
-            var asn1 = ASN1.decode(data), head, head1, body, mac, pad;
-            if(asn1.typeName() !== 'SEQUENCE' || asn1.sub.length !== 2) {
-                throw new Error();
-            }
-            head = asn1.sub[0];
-            if(head.typeName() !== 'SEQUENCE' || head.sub.length !== 2) {
-                throw new Error();
-            }
-            oid = head.sub[0];
-            if(oid.typeName() !== 'OBJECT_IDENTIFIER' || oid.content() !== OID_IIT) {
-                throw new Error(oid.content());
-            }
-            head1 = head.sub[1];
-            if(head1.typeName() !== 'SEQUENCE' || head1.sub.length !== 2) {
-                throw new Error();
-            }
-            mac = head1.sub[0];
-            pad = head1.sub[1];
-            if(mac.typeName() !== 'OCTET_STRING' || pad.typeName() != 'OCTET_STRING') {
-                throw new Error(mac.typeName());
-            }
-            if(mac.length !== 4) {
-                throw new Error("Invalid mac len " + mac.length);
-            }
-            if(pad.length >= 8) {
-                throw new Error("Invalid pad len " + pad.length);
-            }
-
-            body = asn1.sub[1];
-            if(body.typeName() !== 'OCTET_STRING') {
-                throw new Error(body.typeName());
-            }
-
-            return {
-                "mac": mac,
-                "pad": pad,
-                "body": body,
-            }
-        }
 
         var decode_import = function(indata, password) {
-            var parsed = parse_helper(indata),
-                decoded = decode_data(parsed.body, parsed.pad, password, parsed.mac)
+            var parser = new Keycoder(),
+                parsed = parser.parse(indata),
+                decoded = decode_data(parsed, password);
 
             if(decoded == undefined) {
                 return;
@@ -244,8 +216,8 @@
         if(status == false) {
             document.getElementById('pem_out').innerText = 'Err';
         } else {
-            document.getElementById('pem_out').innerText = [
-                PEM_KEY_B, data, PEM_KEY_E].join('\n');
+            var keycoder = new Keycoder();
+            document.getElementById('pem_out').innerText = keycoder.to_pem(data);
         }
     }
     </script>
