@@ -1,65 +1,57 @@
 var Keycoder = function() {
 
-    var OID_IIT = '1.3.6.1.4.1.19398.1.1.1.2',
-    OID_PBES2 = '1.2.840.113549.1.5.13',
-    OID_PBKDF2 = '1.2.840.113549.1.5.12',
-    OID_GOST_34311_HMAC = '1.2.804.2.1.1.1.1.1.2',
-    OID_GOST_28147_CFB = '1.2.804.2.1.1.1.1.1.1.3',
-    OID_DSTU_4145_LE = '1.2.804.2.1.1.1.1.3.1.1',
+    var OID = {
+        "1 3 6 1 4 1 19398 1 1 1 2": "IIT Store",
+        '1.2.840.113549.1.5.13': "PBES2",
+        "1.2.840.113549.1.5.12": "PBKDF2",
+        '1.2.804.2.1.1.1.1.1.2': "GOST_34311_HMAC",
+        '1.2.804.2.1.1.1.1.1.1.3': "GOST_28147_CFB",
+        '1.2.804.2.1.1.1.1.3.1.1': "DSTU_4145_LE",
+    },
     PEM_KEY_B = '-----BEGIN PRIVATE KEY-----',
     PEM_KEY_E = '-----END PRIVATE KEY-----',
-    ob = {
+    asn1 = require('asn1'),
+    Buffer = require('buffer').Buffer;
+    var ob = {
+        StoreIIT: asn1.define('StoreIIT', function() {
+            this.seq().obj(
+                this.key('cryptParam').seq().obj(
+                    this.key('cryptType').objid(OID),
+                    this.key('cryptParam').seq().obj(
+                        this.key('mac').octstr(),
+                        this.key('pad').octstr()
+                    )
+                    ),
+                this.key('cryptData').octstr()
+            );
+        }),
         to_pem: function(b64) {
             return [PEM_KEY_B, b64, PEM_KEY_E].join('\n');
         },
         is_valid : function(indata) {
-            var asn1 = ASN1.decode(indata), head, head1, ver, oid;
-            if((asn1.typeName() !== 'SEQUENCE') || (asn1.sub.length < 2)) {
-                return false;
-            }
-            head = asn1.sub[1];
-            ver = asn1.sub[0];
-            v = ver
-            if(ver.content() !== 0) {
-                return false;
-            }
-            if(head.typeName() !== 'SEQUENCE') {
-                return false;
-            }
-            oid = head.sub[0];
-            if(oid.content() !== OID_DSTU_4145_LE) {
-                return false;
-            }
-            return true;
+            return (indata[0] == 0x30) && (indata[1] == 0x82);
         },
-        iit_parse: function(asn1) {
-            var head = asn1.sub[0],
-                head1 = head.sub[1];
-            if(head1.typeName() !== 'SEQUENCE' || head1.sub.length !== 2) {
-                throw new Error();
-            }
-            mac = head1.sub[0];
-            pad = head1.sub[1];
-            if(mac.typeName() !== 'OCTET_STRING' || pad.typeName() != 'OCTET_STRING') {
-                throw new Error(mac.typeName());
-            }
+        iit_parse: function(data) {
+
+            var asn1 = ob.StoreIIT.decode(data, 'der'), mac, pad;
+            mac = asn1.cryptParam.cryptParam.mac;
+            pad = asn1.cryptParam.cryptParam.pad;
+
             if(mac.length !== 4) {
                 throw new Error("Invalid mac len " + mac.length);
             }
             if(pad.length >= 8) {
                 throw new Error("Invalid pad len " + pad.length);
             }
-
-            body = asn1.sub[1];
-            if(body.typeName() !== 'OCTET_STRING') {
-                throw new Error(body.typeName());
+            if(asn1.cryptParam.cryptType !== 'IIT Store') {
+                throw new Error("Invalid storage type");
             }
 
             return {
                 "format": "IIT",
                 "mac": mac,
                 "pad": pad,
-                "body": body,
+                "body": asn1.cryptData,
             }
         },
         pbes2_parse: function(asn1) {
@@ -101,30 +93,15 @@ var Keycoder = function() {
             }
         },
         guess_parse: function(indata) {
-            var data = indata;
-            if(data instanceof String) {
-                data = Hex.decode(data);
-            }
+            var data = indata, ret;
+            data = new Buffer(indata, 'raw');
 
-            var asn1 = ASN1.decode(data), head, head1, body, mac, pad;
-            if(asn1.typeName() !== 'SEQUENCE' || asn1.sub.length !== 2) {
-                throw new Error();
+            try {
+                return ob.iit_parse(data);
+            } catch (e) {
+                console.log("fail" + e);
             }
-            head = asn1.sub[0];
-            if(head.typeName() !== 'SEQUENCE' || head.sub.length !== 2) {
-                throw new Error();
-            }
-            oid = head.sub[0];
-            if(oid.typeName() !== 'OBJECT_IDENTIFIER' ) {
-                throw new Error(oid.content());
-            }
-            if(oid.content() == OID_IIT) {
-                return ob.iit_parse(asn1);
-            }
-            if(oid.content() == OID_PBES2) {
-                return ob.pbes2_parse(asn1);
-            }
-            throw new Error(oid.content());
+            throw new Error("Unknown format");
         },
     };
     return {

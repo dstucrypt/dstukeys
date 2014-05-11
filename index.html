@@ -4,8 +4,6 @@
 </head>
 <body>
     <script type="text/javascript" src="/js/uadstu.js"></script>
-    <script type="text/javascript" src="/js/hex.js"></script>
-    <script type="text/javascript" src="/js/int10.js"></script>
     <script type="text/javascript" src="/js/asn1.js"></script>
     <script type="text/javascript" src="/js/keycoder.js"></script>
 
@@ -138,7 +136,7 @@
             var buf_len = 0, buf, start, end, off = 0,
                 start, end;
 
-            if(asn_l.stream !== undefined) {
+            if(asn_l.buffer !== undefined) {
                 asn_l = [asn_l];
             }
 
@@ -150,9 +148,8 @@
 
             for(var j = 0; j < asn_l.length; j++) {
                 var asn = asn_l[j], i;
-                start = asn.posContent();
                 for(i = 0; i < asn.length; i++) {
-                    setValue(buf + i + off, asn.stream.get(start + i), 'i8');
+                    setValue(buf + i + off, asn[i], 'i8');
                 }
                 off += i;
             }
