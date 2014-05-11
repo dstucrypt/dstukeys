@@ -2,11 +2,11 @@ var Keycoder = function() {
 
     var OID = {
         "1 3 6 1 4 1 19398 1 1 1 2": "IIT Store",
-        '1.2.840.113549.1.5.13': "PBES2",
-        "1.2.840.113549.1.5.12": "PBKDF2",
-        '1.2.804.2.1.1.1.1.1.2': "GOST_34311_HMAC",
-        '1.2.804.2.1.1.1.1.1.1.3': "GOST_28147_CFB",
-        '1.2.804.2.1.1.1.1.3.1.1': "DSTU_4145_LE",
+        '1 2 840 113549 1 5 13': "PBES2",
+        "1 2 840 113549 1 5 12": "PBKDF2",
+        '1 2 804 2 1 1 1 1 1 2': "GOST_34311_HMAC",
+        '1 2 804 2 1 1 1 1 1 1 3': "GOST_28147_CFB",
+        '1 2 804 2 1 1 1 1 3 1 1': "DSTU_4145_LE",
     },
     PEM_KEY_B = '-----BEGIN PRIVATE KEY-----',
     PEM_KEY_E = '-----END PRIVATE KEY-----',
@@ -25,11 +25,39 @@ var Keycoder = function() {
                 this.key('cryptData').octstr()
             );
         }),
+        StorePBES2: asn1.define("StorePBES2", function() {
+            this.seq().obj(
+                this.key("head").seq().obj(
+                    this.key("id").objid(OID),
+                    this.key("p").seq().obj(
+                        this.key("key").seq().obj(
+                            this.key("id").objid(OID),
+                            this.key("p").seq().obj(
+                                this.key("salt").octstr(),
+                                this.key("cycles").int(),
+                                this.key("cipher").seq().obj(
+                                    this.key("id").objid(OID),
+                                    this.key("null").null_()
+                                )
+                            )
+                        ),
+                        this.key("cipher").seq().obj(
+                            this.key("id").objid(OID),
+                            this.key("p").seq().obj(
+                                this.key("iv").octstr(),
+                                this.key("sbox").octstr()
+                            )
+                        )
+                    )
+                ),
+                this.key("cryptData").octstr()
+            );
+        }),
         to_pem: function(b64) {
             return [PEM_KEY_B, b64, PEM_KEY_E].join('\n');
         },
         is_valid : function(indata) {
-            return (indata[0] == 0x30) && (indata[1] == 0x82);
+            return (indata[0] == 0x30) && ((indata[1] & 0x80) == 0x80);
         },
         iit_parse: function(data) {
 
@@ -54,42 +82,36 @@ var Keycoder = function() {
                 "body": asn1.cryptData,
             }
         },
-        pbes2_parse: function(asn1) {
-            var head = asn1.sub[0],
-                head1 = head.sub[1],
-                pbkdf2 = head1.sub[0],
-                cparams = head1.sub[1],
-                oid = pbkdf2.sub[0],
-                params = pbkdf2.sub[1],
-                salt = params.sub[0],
-                iters = params.sub[1],
-                params1 = params.sub[2],
-                hmac_oid = params1.sub[0],
-                cipher_oid = cparams.sub[0],
-                cparams1 = cparams.sub[1],
-                iv = cparams1.sub[0],
-                sbox = cparams1.sub[1],
-                body = asn1.sub[1];
+        pbes2_parse: function(data) {
+            var asn1 = ob.StorePBES2.decode(data, 'der'), iv, sbox, salt, iter;
 
-            if(oid.content() != OID_PBKDF2) {
-                throw new Error(oid.content());
+            if(asn1.head.id !== 'PBES2') {
+                throw new Error(asn1.head.id);
             }
-            if(hmac_oid.content() != OID_GOST_34311_HMAC) {
-                throw new Error(hmac_oid.content());
+            if(asn1.head.p.key.id !== 'PBKDF2') {
+                throw new Error(asn1.head.p.key.id);
             }
-            if(cipher_oid.content() != OID_GOST_28147_CFB) {
-                throw new Error(cipher_oid.content());
+            if(asn1.head.p.key.p.cipher.id != 'GOST_34311_HMAC') {
+                throw new Error(asn1.head.p.key.p.cipher.id);
             }
+            if(asn1.head.p.cipher.id != 'GOST_28147_CFB') {
+                throw new Error(asn1.head.p.cipher.id);
+            }
+            iv = asn1.head.p.cipher.p.iv;
+            sbox = asn1.head.p.cipher.p.sbox;
+            salt = asn1.head.p.key.p.salt;
+            iter = asn1.head.p.key.p.cycles;
+
             if( (iv.length != 8) || (sbox.length != 64) || (salt.length != 32)) {
                 throw new Error("IV len: " + iv.length + ", S-BOX len: " + sbox.length + ", SALT len: " + salt.length);
             }
             return {
                 "format": "PBES2",
-                "body": body,
                 "iv": iv,
                 "sbox": sbox,
                 "salt": salt,
-                "iters": Number(iters.content())
+                "iters": iter,
+                "body": asn1.cryptData,
             }
         },
         guess_parse: function(indata) {
@@ -98,9 +120,10 @@ var Keycoder = function() {
 
             try {
                 return ob.iit_parse(data);
-            } catch (e) {
-                console.log("fail" + e);
-            }
+            } catch (e) {}
+            try {
+                return ob.pbes2_parse(data);
+            } catch(e) {}
             throw new Error("Unknown format");
         },
     };
