@@ -4,8 +4,7 @@
 </head>
 <body>
     <script type="text/javascript" src="/js/uadstu.js"></script>
-    <script type="text/javascript" src="/js/asn1.js"></script>
-    <script type="text/javascript" src="/js/keycoder.js"></script>
+    <script type="text/javascript" src="/js/build.js"></script>
 
     <h1>Key converter</h1>
 
@@ -36,6 +35,7 @@
     }
     </style>
     <script>
+        var Curve = require('jkurwa'), priv=null;
         var read_buf = function(ptr, sz) {
             var ret = [], x=0;
             for(var i = 0; i < sz; i++) {
@@ -156,11 +156,42 @@
             return buf;
         }
 
+        var set_priv = function(p) {
+            _p = p;
+            var curve = new Curve({
+                a: p.curve.a,
+                b: p.curve.b,
+                m: p.curve.m,
+                k1: p.curve.k1,
+                k2: 0,
+                order: p.curve.order,
+                base: p.curve.base,
+            }),
+            priv = new Curve.Priv(curve, p.param_d);
+
+            _c = curve;
+            _p = priv;
+
+        }
 
         var decode_import = function(indata, password) {
-            var parser = new Keycoder(),
+            var parser = new Curve.Keycoder(),
                 parsed = parser.parse(indata),
-                decoded = decode_data(parsed, password);
+                decoded;
+
+            if(parsed.format == 'privkey') {
+                say("Decoded privatekey found");
+                set_priv(parsed);
+                return true;
+            }
+
+            var password = document.getElementById('pw_in').value;
+            if((password === undefined) || password.length == 0) {
+                say("Password required to decode data");
+                return true;
+            }
+
+            decoded = decode_data(parsed, password);
 
             if(decoded == undefined) {
                 return;
@@ -178,18 +209,17 @@
         evt.preventDefault();
 
         var files = evt.dataTransfer.files; // FileList object.
-        var password = document.getElementById('pw_in').value;
-        if((password === undefined) || password.length == 0) {
-            return;
-        }
-
         // files is a FileList of File objects. List some properties.
         var output = [];
         for (var i = 0, f; f = files[i]; i++) {
             var reader = new FileReader();
             reader.onload = function(evt) {
                 var u8 = new Uint8Array(evt.target.result),
-                    data = decode_import(u8, password);
+                    data = decode_import(u8);
+
+                if(data === true) {
+                    return;
+                }
 
                 if(data === undefined) {
                     decode_result(false);
@@ -216,9 +246,13 @@
         if(status == false) {
             document.getElementById('pem_out').innerText = 'Err';
         } else {
-            var keycoder = new Keycoder();
+            var keycoder = new Curve.Keycoder();
             document.getElementById('pem_out').innerText = keycoder.to_pem(data);
         }
+    }
+
+    function say(msg) {
+        document.getElementById('pem_out').innerText = msg;
     }
     </script>
 </body>
