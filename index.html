@@ -14,11 +14,15 @@
     .error {
         color: red;
     }
+    #document textarea {
+        width: 75%;
+        height: 65%;
+    }
     </style>
 
     <h1>Key converter</h1>
 
-    <div id="ui">
+    <div id="ui" data-bind="visible: visible" style="display: none">
         <p>
             This tool decodes private keys for Ukrainian cipher 4145-2002 from legacy formats.
             Drop files into this page. <b>We will NOT transmit keys over network for processing and advice you to disable internet connection while using this tool</b>.
@@ -37,8 +41,19 @@
 
         <pre id="pem_out" data-bind="text: pem_text, visible: pem_visible" ></pre>
         <div id="key_controls" data-bind="visible: key_controls_visible" >
+            <button id="do_sign" data-bind="click: do_sign">Sign document</button>
+            <button id="do_save" data-bind="click: do_save">Remember key</button>
             <button id="as_pem" data-bind="click: show_pem">Show pem</button>
         </div>
+    </div>
+
+    <div id="document" data-bind="visible: visible" style="display: none">
+            <h2>Write document contents in text area below</h2>
+            <textarea data-bind="document_text"></textarea>
+
+            <p>
+                <button data-bind="click: do_sign">Sign text</button>
+            </p>
     </div>
 
     <script>

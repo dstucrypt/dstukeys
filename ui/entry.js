@@ -1,8 +1,10 @@
 var Curve = require('jkurwa'), priv=null,
     dnd = require('./dnd.js'),
     view = require('./ui.js'),
+    docview = require('./document.js'),
     Keyholder = require('./keyholder.js'),
     keys,
+    doc,
     vm;
 
 var set_priv = function(p) {
@@ -87,6 +89,19 @@ function pem_cb() {
     vm.set_pem(pem_data);
 }
 
+function to_storage() {
+}
+
+function sign_box() {
+    vm.dnd_visible(false);
+    vm.pem_visible(false);
+    vm.error_visible(false);
+    vm.key_controls_visible(false);
+    vm.key_info_visible(false);
+    vm.visible(false);
+    doc.visible(true);
+}
+
 function file_dropped(u8) {
     vm.set_error();
     keys.have({key: u8})
@@ -94,9 +109,18 @@ function file_dropped(u8) {
 
 function setup() {
     keys = new Keyholder({need: need_cb, feedback: feedback_cb});
-    vm = new view.Main({password: password_cb, pem: pem_cb});
+    vm = new view.Main({
+        password: password_cb,
+        pem: pem_cb,
+        to_storage: to_storage,
+        sign_box: sign_box,
+    });
+    doc = new docview.Document({});
     dnd.setup(file_dropped);
     ko.applyBindings(vm, document.getElementById("ui"));
+    ko.applyBindings(doc, document.getElementById("document"));
+
+    vm.visible(true);
 }
 
 module.exports.setup = setup;

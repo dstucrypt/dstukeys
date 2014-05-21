@@ -12,7 +12,7 @@ var Main = function (cb) {
     var pem_text = ko.observable("");
     var error_visible = ko.observable(false);
     var error_text = ko.observable("");
-
+    var visible = ko.observable(false);
 
     var accept_pw = function() {
         var value = pw();
@@ -29,6 +29,12 @@ var Main = function (cb) {
         } else {
             cb.pem();
         }
+    };
+    var do_save = function() {
+        cb.to_storage();
+    };
+    var do_sign = function() {
+        cb.sign_box();
     };
 
     var set_pem = function(val) {
@@ -60,12 +66,15 @@ var Main = function (cb) {
         key_info: key_info,
         accept_pw: accept_pw,
         show_pem: show_pem,
+        do_save: do_save,
+        do_sign: do_sign,
         set_pem: set_pem,
         pem_text: pem_text,
         pem_visible: pem_visible,
         set_error: set_error,
         error_text: error_text,
         error_visible: error_visible,
+        visible: visible,
     };
     return ob;
 }
