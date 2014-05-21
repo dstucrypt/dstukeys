@@ -3921,7 +3921,7 @@ var Document = function(cb) {
     var do_sign = function() {
         cb.sign_text(document_text());
     };
-    
+
     var set_sign = function(hash_bn, param_s, param_r) {
         var txt = "";
         txt += 'Hash: ' + hash_bn.toString(16);
@@ -4201,6 +4201,7 @@ var Keyholder = function(cb) {
 
                 cb.feedback({password: true, key: true});
                 ob.raw_key = decoded;
+                have({key: decoded})
             }
         }
     },
