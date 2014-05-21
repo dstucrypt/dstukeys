@@ -1,7 +1,9 @@
 var Curve = require('jkurwa'), priv=null,
-    dstu = require('./dstu.js'),
     dnd = require('./dnd.js'),
-    util = require('./util.js');
+    view = require('./ui.js'),
+    Keyholder = require('./keyholder.js'),
+    keys,
+    vm;
 
 var set_priv = function(p) {
     _p = p;
@@ -18,25 +20,11 @@ var set_priv = function(p) {
 
     _c = curve;
     _p = priv;
-
 }
 
 var decode_import = function(indata, password) {
-    var parser = new Curve.Keycoder(),
         parsed = parser.parse(indata),
         decoded;
-
-    if(parsed.format == 'privkey') {
-        say("Decoded privatekey found");
-        set_priv(parsed);
-        return true;
-    }
-
-    var password = document.getElementById('pw_in').value;
-    if((password === undefined) || password.length == 0) {
-        say("Password required to decode data");
-        return true;
-    }
 
     decoded = dstu.decode_data(parsed, password);
 
@@ -53,31 +41,62 @@ function decode_result(status, data) {
     if(status == false) {
         document.getElementById('pem_out').innerText = 'Err';
     } else {
-        var keycoder = new Curve.Keycoder();
         document.getElementById('pem_out').innerText = keycoder.to_pem(data);
     }
 }
 
-function say(msg) {
-    document.getElementById('pem_out').innerText = msg;
+function need_cb(evt) {
+    if(evt.password === true) {
+        vm.dnd_visible(false);
+        vm.pw_visible(true);
+    }
+}
+
+function feedback_cb(evt) {
+    if(evt.password === false) {
+        console.log("password fail");
+        vm.pw_error(true);
+    }
+    if(evt.password === true) {
+        console.log("password accepted");
+        vm.pw_error(false);
+        vm.pw_visible(false);
+    }
+    if(evt.key === true) {
+        var names = {
+            privkey: "standard unencrypted",
+            IIT: "proprietarty encrypted",
+            PBES2: "standard encrypted",
+        };
+        vm.key_info("Found key in " + names[keys.key_info.format] + " format");
+        vm.dnd_visible(false);
+        vm.key_controls_visible(true);
+        vm.key_info_visible(true);
+    }
+    if(evt.key === false) {
+        vm.set_error("You dropped some file, but it's not private key (or we maybe we can't read it)");
+    }
+}
+
+function password_cb(value) {
+    keys.have({password: value})
+}
+
+function pem_cb() {
+    var pem_data = keys.get_pem();
+    vm.set_pem(pem_data);
 }
 
 function file_dropped(u8) {
-    var data = decode_import(u8);
-
-    if(data === true) {
-        return;
-    }
-
-    if(data === undefined) {
-        decode_result(false);
-    } else {
-        decode_result(true, data);
-    }
+    vm.set_error();
+    keys.have({key: u8})
 }
 
 function setup() {
+    keys = new Keyholder({need: need_cb, feedback: feedback_cb});
+    vm = new view.Main({password: password_cb, pem: pem_cb});
     dnd.setup(file_dropped);
+    ko.applyBindings(vm, document.getElementById("ui"));
 }
 
 module.exports.setup = setup;

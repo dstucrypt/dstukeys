@@ -4,18 +4,42 @@
 </head>
 <body>
     <script type="text/javascript" src="/js/uadstu.js"></script>
+    <script type="text/javascript" src="/js/knockout-3.1.0.js"></script>
     <script type="text/javascript" src="/js/build.js"></script>
+
+    <style>
+    .field_error { 
+        border: solid 1px red;
+    }
+    .error {
+        color: red;
+    }
+    </style>
 
     <h1>Key converter</h1>
 
-    <p>
-        This tool decodes private keys for Ukrainian cipher 4145-2002 from legacy formats.
-        Drop files into this page. <b>We will NOT transmit keys over network for processing and advice you to disable internet connection while using this tool</b>.
-    </p>
+    <div id="ui">
+        <p>
+            This tool decodes private keys for Ukrainian cipher 4145-2002 from legacy formats.
+            Drop files into this page. <b>We will NOT transmit keys over network for processing and advice you to disable internet connection while using this tool</b>.
+        </p>
 
-    <div id="drop_zone">Drop files here</div>
-    <input id='pw_in' type="password" />
-    <pre id="pem_out" ></pre>
+        <p data-bind="visible: error_visible">
+            <span class="error" data-bind="visible: error_visible, text: error_text"></span>
+        </p>
+
+        <div id="drop_zone" data-bind="visible: dnd_visible" >Drop files here</div>
+        <input id='pw_in' data-bind="css: {field_error: pw_error}, visible: pw_visible, value: pw" type="password" />
+        <button id="pw_accept" type="button" data-bind="visible: pw_visible, click: accept_pw" >Accept</button>
+        <div id="key_info" data-bind="visible: key_info_visible">
+            <span data-bind="text: key_info"></span>
+        </div>
+
+        <pre id="pem_out" data-bind="text: pem_text, visible: pem_visible" ></pre>
+        <div id="key_controls" data-bind="visible: key_controls_visible" >
+            <button id="as_pem" data-bind="click: show_pem">Show pem</button>
+        </div>
+    </div>
 
     <script>
         require('ui').setup();
