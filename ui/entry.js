@@ -1,28 +1,12 @@
 var Curve = require('jkurwa'), priv=null,
     dnd = require('./dnd.js'),
     view = require('./ui.js'),
+    dstu = require('./dstu.js'),
     docview = require('./document.js'),
     Keyholder = require('./keyholder.js'),
     keys,
     doc,
     vm;
-
-var set_priv = function(p) {
-    _p = p;
-    var curve = new Curve({
-        a: p.curve.a,
-        b: p.curve.b,
-        m: p.curve.m,
-        k1: p.curve.k1,
-        k2: 0,
-        order: p.curve.order,
-        base: p.curve.base,
-    }),
-    priv = new Curve.Priv(curve, p.param_d);
-
-    _c = curve;
-    _p = priv;
-}
 
 var decode_import = function(indata, password) {
         parsed = parser.parse(indata),
@@ -102,6 +86,15 @@ function sign_box() {
     doc.visible(true);
 }
 
+function sign_cb(contents) {
+    var hash = dstu.compute_hash(contents);
+    hash = [0].concat(hash);
+    var hash_bn = new Curve.Big(hash);
+    var priv = keys.get_signer();
+    var sign = priv.sign(hash_bn);
+    doc.set_sign(hash_bn, sign.s, sign.r);
+}
+
 function file_dropped(u8) {
     vm.set_error();
     keys.have({key: u8})
@@ -115,7 +108,7 @@ function setup() {
         to_storage: to_storage,
         sign_box: sign_box,
     });
-    doc = new docview.Document({});
+    doc = new docview.Document({sign_text: sign_cb});
     dnd.setup(file_dropped);
     ko.applyBindings(vm, document.getElementById("ui"));
     ko.applyBindings(doc, document.getElementById("document"));

@@ -19,6 +19,7 @@ var Keyholder = function(cb) {
         switch(parsed.format) {
         case 'privkey':
             ob.raw_key = data;
+            ob.key = parsed;
             cb.feedback({key: true});
             break;
         case 'IIT':
@@ -50,6 +51,20 @@ var Keyholder = function(cb) {
             }
         }
     },
+    signer = function() {
+        var p = ob.key;
+
+        var curve = new Curve({
+            a: p.curve.a,
+            b: p.curve.b,
+            m: p.curve.m,
+            k1: p.curve.k1,
+            k2: 0,
+            order: p.curve.order,
+            base: p.curve.base,
+        });
+        return new Curve.Priv(curve, p.param_d);
+    },
     pem = function() {
         return keycoder.to_pem(util.numberB64(ob.raw_key, 42));
     };
@@ -57,6 +72,7 @@ var Keyholder = function(cb) {
     ob = {
         have: have,
         get_pem: pem,
+        get_signer: signer,
         key_info: {
         }
     };

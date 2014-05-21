@@ -63,7 +63,20 @@ var decode_data = function(parsed, pw) {
     }
 }
 
+var compute_hash = function(contents) {
+    var args, argtypes, vm_contents, rbuf, err, ret;
+    rbuf = allocate(32, 'i8', ALLOC_STACK);
+    vm_contents = allocate(intArrayFromString(contents), 'i8', ALLOC_STACK);
+    args = [vm_contents, contents.length, rbuf];
+    argtypes = ['number', 'number', 'number'];
+    err = Module.ccall('compute_hash', 'number', argtypes, args);
+    if(err === 0) {
+        ret = util.read_buf(rbuf, 32);
+        return ret;
+    }
+    throw new Error("Document hasher failed");
+}
+
 module.exports.decode_data = decode_data
-module.exports.convert_password = convert_password
-exports.decode_data = decode_data
-exports.convert_password = convert_password
+module.exports.convert_password = convert_password;
+module.exports.compute_hash = compute_hash
