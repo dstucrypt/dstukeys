@@ -48,6 +48,7 @@ var Keyholder = function(cb) {
 
                 cb.feedback({password: true, key: true});
                 ob.raw_key = decoded;
+                have({key: decoded})
             }
         }
     },
