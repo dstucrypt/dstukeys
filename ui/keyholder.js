@@ -15,7 +15,13 @@ var Keyholder = function(cb) {
         )
     };
     cert_key_match = function(key, cert) {
-        return true; // TODO: implement me!
+        var key_curve = ob.get_curve();
+        var key_priv = Curve.Priv(key_curve, ob.key.param_d);
+        var key_pub = key_priv.pub();
+
+        var cert_pub_point = key_curve.point(cert.pubkey);
+
+        return key_pub.point.equals(cert_pub_point);
     };
     have_key = function(data) {
         try {
@@ -67,10 +73,10 @@ var Keyholder = function(cb) {
             }
         }
     };
-    signer = function() {
+    get_curve = function() {
         var p = ob.key;
 
-        var curve = new Curve({
+        return curve = new Curve({
             a: p.curve.a,
             b: p.curve.b,
             m: p.curve.m,
@@ -79,6 +85,11 @@ var Keyholder = function(cb) {
             order: p.curve.order,
             base: p.curve.base,
         });
+    };
+    signer = function() {
+        var p = ob.key;
+        var curve = ob.get_curve();
+
         return new Curve.Priv(curve, p.param_d);
     };
     pem = function() {
@@ -89,6 +100,7 @@ var Keyholder = function(cb) {
         have: have,
         get_pem: pem,
         get_signer: signer,
+        get_curve: get_curve,
         is_ready_sign: is_ready_sign,
         cert_key_match: cert_key_match,
         key_info: {
