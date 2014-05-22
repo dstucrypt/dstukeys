@@ -3,9 +3,11 @@ var Curve = require('jkurwa'), priv=null,
     view = require('./ui.js'),
     dstu = require('./dstu.js'),
     docview = require('./document.js'),
+    identview = require('./identity.js'),
     Keyholder = require('./keyholder.js'),
     keys,
     doc,
+    ident,
     vm;
 
 var decode_import = function(indata, password) {
@@ -55,6 +57,8 @@ function feedback_cb(evt) {
         vm.set_error("You dropped some file, but it's not private key (or we maybe we can't read it)");
     }
     if(evt.cert === true) {
+        ident.set_ident(keys.cert.subject, keys.cert.extension);
+        ident.visible(true);
         vm.dnd_text("Теперь бросайте ключ");
     }
 
@@ -114,9 +118,11 @@ function setup() {
         sign_box: sign_box,
     });
     doc = new docview.Document({sign_text: sign_cb});
+    ident = new identview.Ident();
     dnd.setup(file_dropped);
     ko.applyBindings(vm, document.getElementById("ui"));
     ko.applyBindings(doc, document.getElementById("document"));
+    ko.applyBindings(ident, document.getElementById("identity"));
 
     vm.dnd_text("Файлы бросать сюда");
     vm.visible(true);

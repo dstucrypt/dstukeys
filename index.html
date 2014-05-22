@@ -69,6 +69,12 @@
             </p>
     </div>
 
+    <div id="identity" data-bind="visible: visible" style="display: none">
+        <span data-bind="text: commonName" ></span>
+        <span data-bind="text: title" ></span>
+        <span data-bind="text: ipn" ></span>
+    </div>
+
     <script>
         require('ui').setup();
     </script>
