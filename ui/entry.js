@@ -62,6 +62,9 @@ function feedback_cb(evt) {
     if(evt.key === false) {
         vm.set_error("You dropped some file, but it's not private key (or we maybe we can't read it)");
     }
+    if(evt.cert === true) {
+        vm.dnd_text("Теперь бросайте ключ");
+    }
 }
 
 function password_cb(value) {
@@ -113,6 +116,7 @@ function setup() {
     ko.applyBindings(vm, document.getElementById("ui"));
     ko.applyBindings(doc, document.getElementById("document"));
 
+    vm.dnd_text("Файлы бросать сюда");
     vm.visible(true);
 }
 

@@ -38,7 +38,7 @@
             <span class="error" data-bind="visible: error_visible, text: error_text"></span>
         </p>
 
-        <div id="drop_zone" data-bind="visible: dnd_visible" >Файл бросать сюда.</div>
+        <div id="drop_zone" data-bind="visible: dnd_visible, text: dnd_text" >Файл бросать сюда.</div>
         <p data-bind="visible: pw_visible">
             Файл ключа зашифрован. Введите пароль и нажмите кнопку
             <input id='pw_in' data-bind="css: {field_error: pw_error}, visible: pw_visible, value: pw" type="password" />

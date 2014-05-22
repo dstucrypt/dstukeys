@@ -13,6 +13,7 @@ var Main = function (cb) {
     var error_visible = ko.observable(false);
     var error_text = ko.observable("");
     var visible = ko.observable(false);
+    var dnd_text = ko.observable("");
 
     var accept_pw = function() {
         var value = pw();
@@ -75,6 +76,7 @@ var Main = function (cb) {
         error_text: error_text,
         error_visible: error_visible,
         visible: visible,
+        dnd_text: dnd_text,
     };
     return ob;
 }

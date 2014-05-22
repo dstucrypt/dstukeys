@@ -27,6 +27,10 @@ var Keyholder = function(cb) {
             ob.encrypted_key = parsed;
             cb.need({password: true});
             break;
+        case 'x509':
+            ob.cert = parsed;
+            cb.feedback({cert: true});
+            break;
         default:
             console.log("have something unknown");
         }
