@@ -49,21 +49,23 @@ function feedback_cb(evt) {
         vm.pw_visible(false);
     }
     if(evt.key === true) {
-        var names = {
-            privkey: "standard unencrypted",
-            IIT: "proprietarty encrypted",
-            PBES2: "standard encrypted",
-        };
-        vm.key_info("Found key in " + names[keys.key_info.format] + " format");
-        vm.dnd_visible(false);
-        vm.key_controls_visible(true);
-        vm.key_info_visible(true);
+        vm.dnd_text("Теперь бросайте сертификат");
     }
     if(evt.key === false) {
         vm.set_error("You dropped some file, but it's not private key (or we maybe we can't read it)");
     }
     if(evt.cert === true) {
         vm.dnd_text("Теперь бросайте ключ");
+    }
+
+    if((evt.key === true) || (evt.cert === true)) {
+        if(keys.is_ready_sign()) {
+            vm.dnd_visible(false);
+            vm.key_controls_visible(true);
+            vm.key_info_visible(true);
+        } else {
+            vm.dnd_visible(true);
+        }
     }
 }
 
