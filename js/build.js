@@ -47,7 +47,7 @@ return this};d.inverse=function(){return this.power(this.modulus.sub(2))};c.from
 sjcl.bn.prime={p127:M(127,[[0,-1]]),p25519:M(255,[[0,-19]]),p192k:M(192,[[32,-1],[12,-1],[8,-1],[7,-1],[6,-1],[3,-1],[0,-1]]),p224k:M(224,[[32,-1],[12,-1],[11,-1],[9,-1],[7,-1],[4,-1],[1,-1],[0,-1]]),p256k:M(0x100,[[32,-1],[9,-1],[8,-1],[7,-1],[6,-1],[4,-1],[0,-1]]),p192:M(192,[[0,-1],[64,-1]]),p224:M(224,[[0,1],[96,-1]]),p256:M(0x100,[[0,-1],[96,1],[192,1],[224,-1]]),p384:M(384,[[0,-1],[32,1],[96,-1],[128,-1]]),p521:M(521,[[0,-1]])};
 sjcl.bn.random=function(a,b){"object"!==typeof a&&(a=new sjcl.bn(a));for(var c,d,e=a.limbs.length,f=a.limbs[e-1]+1,g=new sjcl.bn;;){do c=sjcl.random.randomWords(e,b),0>c[e-1]&&(c[e-1]+=0x100000000);while(Math.floor(c[e-1]/f)===Math.floor(0x100000000/f));c[e-1]%=f;for(d=0;d<e-1;d++)c[d]&=a.radixMask;g.limbs=c;if(!g.greaterEquals(a))return g}};
 
-},{"crypto":37}],"RxwtOC":[function(require,module,exports){
+},{"crypto":38}],"RxwtOC":[function(require,module,exports){
 var asn1 = exports;
 
 // Optional bignum
@@ -110,7 +110,7 @@ Entity.prototype.encode = function encode(data, enc, /* internal */ reporter) {
   return this.encoders[enc].encode(data, reporter);
 };
 
-},{"../asn1":"RxwtOC","util":45,"vm":46}],6:[function(require,module,exports){
+},{"../asn1":"RxwtOC","util":46,"vm":47}],6:[function(require,module,exports){
 var assert = require('assert');
 var util = require('util');
 var Reporter = require('../base').Reporter;
@@ -228,7 +228,7 @@ EncoderBuffer.prototype.join = function join(out, offset) {
   return out;
 };
 
-},{"../base":7,"assert":29,"buffer":"VTj7jY","util":45}],7:[function(require,module,exports){
+},{"../base":7,"assert":30,"buffer":"VTj7jY","util":46}],7:[function(require,module,exports){
 var base = exports;
 
 base.Reporter = require('./reporter').Reporter;
@@ -753,7 +753,7 @@ Node.prototype._encodePrimitive = function encodePrimitive(tag, data) {
     throw new Error('Unsupported tag: ' + tag);
 };
 
-},{"../base":7,"assert":29}],9:[function(require,module,exports){
+},{"../base":7,"assert":30}],9:[function(require,module,exports){
 var util = require('util');
 
 function Reporter(options) {
@@ -844,7 +844,7 @@ ReporterError.prototype.rethrow = function rethrow(msg) {
   return this;
 };
 
-},{"util":45}],10:[function(require,module,exports){
+},{"util":46}],10:[function(require,module,exports){
 var constants = require('../constants');
 
 exports.tagClass = {
@@ -1210,7 +1210,7 @@ function derDecodeLen(buf, primitive, fail) {
   return len;
 }
 
-},{"../../asn1":"RxwtOC","util":45}],13:[function(require,module,exports){
+},{"../../asn1":"RxwtOC","util":46}],13:[function(require,module,exports){
 var decoders = exports;
 
 decoders.der = require('./der');
@@ -1449,7 +1449,7 @@ function encodeTag(tag, primitive, cls, reporter) {
   return res;
 }
 
-},{"../../asn1":"RxwtOC","buffer":"VTj7jY","util":45}],15:[function(require,module,exports){
+},{"../../asn1":"RxwtOC","buffer":"VTj7jY","util":46}],15:[function(require,module,exports){
 var encoders = exports;
 
 encoders.der = require('./der');
@@ -3109,7 +3109,14 @@ BigInteger.prototype.square = bnSquare;
 // static BigInteger valueOf(long val)
 module.exports = BigInteger
 
+},{}],"jkurwa":[function(require,module,exports){
+module.exports=require('B9c0rZ');
 },{}],"B9c0rZ":[function(require,module,exports){
+/*jslint plusplus: true */
+/*jslint bitwise: true */
+
+'use strict';
+
 var Big = require('./3rtparty/jsbn.packed.js'),
     sjcl = require('sjcl'),
     Keycoder = require('./keycoder.js'),
@@ -3118,44 +3125,44 @@ var Big = require('./3rtparty/jsbn.packed.js'),
 
 sjcl.random.startCollectors();
 
-var fmul = function(value_1, value_2, modulus) {
-    var ret = ZERO, j, bitl_a;
+var fmod = function (val, modulus) {
+    var rv, bitm_l, mask;
+    if (val.compareTo(modulus) < 0) {
+        return val;
+    }
+    rv = val;
+    bitm_l = modulus.bitLength();
+    while (rv.bitLength() >= bitm_l) {
+        mask = modulus.shiftLeft(rv.bitLength() - bitm_l);
+        rv = rv.xor(mask);
+    }
+
+    return rv;
+};
+var fmul = function (value_1, value_2, modulus) {
+    var ret = ZERO, j, bitl_1;
+
     bitl_1 = value_1.bitLength();
-    for(j = 0; j < bitl_1; j++ ) {
-        if(value_1.testBit(j)) {
+    for (j = 0; j < bitl_1; j++) {
+        if (value_1.testBit(j)) {
             ret = ret.xor(value_2);
         }
         value_2 = value_2.shiftLeft(1);
     }
     return fmod(ret, modulus);
 
-},
-fmod = function(val, modulus) {
-    var rv, bitm_l, mask;
-    if(val.compareTo(modulus) < 0) {
-        return val;
-    }
-    rv = val;
-    bitm_l = modulus.bitLength();
-    while(rv.bitLength() >= bitm_l) {
-        mask = modulus.shiftLeft(rv.bitLength() - bitm_l);
-        rv = rv.xor(mask);
-    }
-
-    return rv;
-},
-finv = function(value, modulus) {
-    var b, c, u, v;
+};
+var finv = function (value, modulus) {
+    var b, c, u, v, j, tmp;
 
     b = ONE;
     c = ZERO;
     u = fmod(value, modulus);
     v = modulus;
 
-    while(u.bitLength() > 1) {
+    while (u.bitLength() > 1) {
         j = u.bitLength() - v.bitLength();
-        if(j < 0) {
-            var tmp;
+        if (j < 0) {
             tmp = u;
             u = v;
             v = tmp;
@@ -3167,39 +3174,33 @@ finv = function(value, modulus) {
             j = -j;
         }
 
-        u = u.xor(v.shiftLeft(j))
-        b = b.xor(c.shiftLeft(j))
+        u = u.xor(v.shiftLeft(j));
+        b = b.xor(c.shiftLeft(j));
     }
 
     return b;
-},
-ftrace = function(value, modulus) {
-    var rv = value;
-    var bitm_l = modulus.bitLength();
+};
+var ftrace = function (value, modulus) {
+    var rv = value,
+        bitm_l = modulus.bitLength(),
+        idx;
 
-    for(var idx = 1; idx <= bitm_l-2; idx++) {
+    for (idx = 1; idx <= bitm_l - 2; idx++) {
         rv = fmul(rv, rv, modulus);
         rv = rv.xor(value);
     }
 
     return rv.intValue();
-},
-fsquad = function(value, modulus) {
-    var ret;
-    if(modulus.testBit(0)) {
-        ret = fsquad_odd(value, modulus);
-    }
+};
+var fsquad_odd = function (value, modulus) {
+    var val_a = fmod(value, modulus),
+        val_z = val_a,
+        bitl_m = modulus.bitLength(),
+        range_to = (bitl_m - 2) / 2,
+        val_w,
+        idx;
 
-    return fmod(ret, modulus);
-},
-fsquad_odd = function(value, modulus) {
-    var val_a = fmod(value, modulus);
-    var val_z = val_a;
-    var bitl_m = modulus.bitLength();
-    var range_to = (bitl_m-2)/2;
-    var val_w;
-
-    for(var idx=1; idx <= range_to; idx++) {
+    for (idx = 1; idx <= range_to; idx++) {
         val_z = fmul(val_z, val_z, modulus);
         val_z = fmul(val_z, val_z, modulus);
         val_z = val_z.xor(val_a);
@@ -3208,187 +3209,201 @@ fsquad_odd = function(value, modulus) {
     val_w = fmul(val_z, val_z, modulus);
     val_w = val_w.xor(val_z, val_w);
 
-    if(val_w.compareTo(val_a) == 0) {
+    if (val_w.compareTo(val_a) === 0) {
         return val_z;
     }
 
     throw new Error("squad eq fail");
 };
+var fsquad = function (value, modulus) {
+    var ret;
+    if (modulus.testBit(0)) {
+        ret = fsquad_odd(value, modulus);
+    }
 
-var Field = function(param_modulus, value, is_mod) {
-    var modulus = param_modulus, value;
-    mod = function(val) {
-        return fmod(val, modulus);
-    },
-    mul = function(val) {
-        return fmul(val, ob.value, modulus);
-    },
-    add = function(val) {
-        return ob.value.xor(val);
-    },
-    inv = function() {
-        return finv(ob.value, modulus);
-    };
-    var ob = {
+    return fmod(ret, modulus);
+};
+var Field = function (param_modulus, value, is_mod) {
+    var modulus = param_modulus, ob,
+        mod = function (val) {
+            return fmod(val, modulus);
+        },
+        mul = function (val) {
+            return fmul(val, ob.value, modulus);
+        },
+        add = function (val) {
+            return ob.value.xor(val);
+        },
+        inv = function () {
+            return finv(ob.value, modulus);
+        };
+    ob = {
         "mul": mul,
         "mod": mod,
         "add": add,
         "inv": inv,
         "value": value,
-    }
-    if(is_mod !== true)
-        ob.value = mod(value);
-    return ob;
-}
-
-var Point = function(p_curve, p_x, p_y) {
-    var zero = ZERO,
-        modulus = p_curve.modulus;
-
-    var add = function(point_1) {
-        var a, x0, x1, y0, y1, x2, y2, point_2, lbd, tmp, tmp2;
-
-        a = p_curve.param_a;
-        point_2 = new Point(p_curve, zero, zero);
-
-        x0 = field_x.value;
-        y0 = field_y.value;
-        x1 = point_1.x.value;
-        y1 = point_1.y.value;
-
-        if(is_zero()) {
-            return point_1;
-        }
-
-        if(point_1.is_zero()) {
-            return ob;
-        }
-
-        if(x0.compareTo(x1) != 0) {
-            tmp = y0.xor(y1);
-            tmp2 = x0.xor(x1);
-            lbd = fmul(tmp, finv(tmp2, p_curve.modulus),  p_curve.modulus);
-            x2 = a.xor(fmul(lbd, lbd, p_curve.modulus));
-            x2 = x2.xor(lbd)
-            x2 = x2.xor(x0)
-            x2 = x2.xor(x1)
-        } else {
-            if(y1.compareTo(y0) != 0) {
-                return point_2;
-            } else {
-                if(x1.compareTo(zero) == 0) {
-                    return point_2;
-                } else {
-                    lbd = x1.xor(
-                            point_1.y.mul(point_1.x.inv())
-                    )
-                    x2 = fmul(lbd, lbd, p_curve.modulus).xor(a);
-                    x2 = x2.xor(lbd);
-                }
-            }
-        }
-        y2 = fmul(lbd, x1.xor(x2), p_curve.modulus);
-        y2 = y2.xor(x2);
-        y2 = y2.xor(y1)
-
-        point_2.x.value = x2
-        point_2.y.value = y2
-
-        return point_2;
-
-    },
-    mul = function(param_n) {
-        var point_s = new Point(p_curve, zero, zero), cmp, point;
-        cmp = param_n.compareTo(zero)
-        if(cmp == 0) {
-            return point_s;
-        }
-
-        if(cmp < 0) {
-            param_n = param_n.negate();
-            point = negate();
-        } else {
-            point = this;
-        }
-
-        var bitn_l = param_n.bitLength();
-        for(var j = bitn_l-1; j >= 0; j--) {
-            point_s = point_s.add(point_s);
-            if(param_n.testBit(j)) {
-                point_s = point_s.add(point);
-            }
-        }
-
-        return point_s;
-    },
-    negate = function() {
-        return new Point(p_curve, field_x.value, field_x.value.xor(field_y.value));
-    },
-    is_zero = function() {
-        return (field_x.value.compareTo(zero) == 0) && (field_y.value.compareTo(zero) == 0)
-    },
-    expand = function(val) {
-        var pa = p_curve.param_a;
-        var pb = p_curve.param_b;
-
-        if(val.compareTo(ZERO) == 0) {
-            return {
-                x: val,
-                y: fmul(pb, pb, p_curve.modulus),
-            }
-        }
-
-        var k = val.testBit(0);
-        val = val.clearBit(0);
-
-        var trace = ftrace(val, p_curve.modulus);
-        if((trace != 0 && pa.compareTo(ZERO) == 0) || (trace == 0 && pa.compareTo(ONE))) {
-            val = val.setBit(0);
-        }
-
-        var x2 = fmul(val, val, p_curve.modulus);
-        var y = fmul(x2, val, p_curve.modulus);
-
-        if(pa.compareTo(ONE) == 0) {
-            y = y.xor(x2);
-        }
-
-        y = y.xor(pb);
-        x2 = finv(x2, p_curve.modulus);
-
-        y = fmul(y, x2, p_curve.modulus);
-        y = fsquad(y, p_curve.modulus);
-
-        var trace_y = ftrace(y, p_curve.modulus);
-
-        if((k != 0 && trace_y==0) || (k==0 && trace_y!==0)) {
-            y = y.add(ONE);
-        }
-
-        y = fmul(y, val, p_curve.modulus);
-        return {
-            x: val,
-            y: y,
-        }
-    },
-    equals = function(other) {
-        return (other.x.value.compareTo(ob.x.value) == 0) && (
-                other.y.value.compareTo(ob.y.value) == 0
-        );
-    },
-    toString = function() {
-        return "<Point x:"+field_x.value.toString(16)+", y:" + field_y.value.toString(16) + " >"
     };
 
-    if(p_y === undefined) {
-        var coords = expand(p_x);
+    if (is_mod !== true) {
+        ob.value = mod(value);
+    }
+    return ob;
+};
+
+var Point = function (p_curve, p_x, p_y) {
+    var zero = ZERO,
+        modulus = p_curve.modulus,
+        ob,
+        coords,
+        add = function (point_1) {
+            var a, x0, x1, y0, y1, x2, y2, point_2, lbd, tmp, tmp2;
+
+            a = p_curve.param_a;
+            point_2 = new Point(p_curve, zero, zero);
+
+            x0 = ob.x.value;
+            y0 = ob.y.value;
+            x1 = point_1.x.value;
+            y1 = point_1.y.value;
+
+            if (ob.is_zero()) {
+                return point_1;
+            }
+
+            if (point_1.is_zero()) {
+                return ob;
+            }
+
+            if (x0.compareTo(x1) !== 0) {
+                tmp = y0.xor(y1);
+                tmp2 = x0.xor(x1);
+                lbd = fmul(tmp, finv(tmp2, modulus),  modulus);
+                x2 = a.xor(fmul(lbd, lbd, modulus));
+                x2 = x2.xor(lbd);
+                x2 = x2.xor(x0);
+                x2 = x2.xor(x1);
+            } else {
+                if (y1.compareTo(y0) !== 0) {
+                    return point_2;
+                }
+                if (x1.compareTo(zero) === 0) {
+                    return point_2;
+                }
+
+                lbd = x1.xor(point_1.y.mul(point_1.x.inv()));
+                x2 = fmul(lbd, lbd, modulus).xor(a);
+                x2 = x2.xor(lbd);
+            }
+            y2 = fmul(lbd, x1.xor(x2), modulus);
+            y2 = y2.xor(x2);
+            y2 = y2.xor(y1);
+
+            point_2.x.value = x2;
+            point_2.y.value = y2;
+
+            return point_2;
+
+        },
+        mul = function (param_n) {
+            var point_s = new Point(p_curve, zero, zero), cmp, point,
+                bitn_l = param_n.bitLength(),
+                j;
+
+            cmp = param_n.compareTo(zero);
+            if (cmp === 0) {
+                return point_s;
+            }
+
+            if (cmp < 0) {
+                param_n = param_n.negate();
+                point = ob.negate();
+            } else {
+                point = this;
+            }
+
+            for (j = bitn_l - 1; j >= 0; j--) {
+                point_s = point_s.add(point_s);
+                if (param_n.testBit(j)) {
+                    point_s = point_s.add(point);
+                }
+            }
+
+            return point_s;
+        },
+        negate = function () {
+            return new Point(p_curve, ob.x.value, ob.x.value.xor(ob.y.value));
+        },
+        is_zero = function () {
+            return (ob.x.value.compareTo(zero) === 0) && (ob.y.value.compareTo(zero) === 0);
+        },
+        expand = function (val) {
+            var pa = p_curve.param_a,
+                pb = p_curve.param_b,
+                k,
+                x2,
+                y,
+                trace,
+                trace_y;
+
+            if (val.compareTo(ZERO) === 0) {
+                return {
+                    x: val,
+                    y: fmul(pb, pb, modulus),
+                };
+            }
+
+            k = val.testBit(0);
+            val = val.clearBit(0);
+
+            trace = ftrace(val, modulus);
+            if ((trace !== 0 && pa.compareTo(ZERO) === 0) || (trace === 0 && pa.compareTo(ONE) === 0)) {
+                val = val.setBit(0);
+            }
+
+            x2 = fmul(val, val, modulus);
+            y = fmul(x2, val, modulus);
+
+            if (pa.compareTo(ONE) === 0) {
+                y = y.xor(x2);
+            }
+
+            y = y.xor(pb);
+            x2 = finv(x2, modulus);
+
+            y = fmul(y, x2, modulus);
+            y = fsquad(y, modulus);
+
+            trace_y = ftrace(y, modulus);
+
+            if ((k === true && trace_y === 0) || (k === false && trace_y !== 0)) {
+                console.log("do add");
+                y = y.add(ONE);
+            }
+
+            y = fmul(y, val, modulus);
+
+            return {
+                x: val,
+                y: y,
+            };
+        },
+        equals = function (other) {
+            return (other.x.value.compareTo(ob.x.value) === 0) && (
+                other.y.value.compareTo(ob.y.value) === 0
+            );
+        },
+        toString = function () {
+            return "<Point x:" + ob.x.value.toString(16) + ", y:" + ob.y.value.toString(16) + " >";
+        };
+
+    if (p_y === undefined) {
+        coords = expand(p_x);
         p_x = coords.x;
         p_y = coords.y;
     }
 
-    var field_x = Field(p_curve.modulus, p_x),
-        field_y = Field(p_curve.modulus, p_y);
-    var ob = {
+    ob = {
         "add": add,
         "mul": mul,
         "is_zero": is_zero,
@@ -3396,210 +3411,214 @@ var Point = function(p_curve, p_x, p_y) {
         "expand": expand,
         "equals": equals,
         "toString": toString,
-        "x": field_x,
-        "y": field_y,
-    };
-    return ob;
-}
-
-var Pub = function(p_curve, point_q) {
-    var zero = ZERO,
-    help_verify = function(hash_val, s, r) {
-        if(zero.compareTo(s) == 0) {
-            throw new Error("Invalid sig component S");
-        }
-        if(zero.compareTo(r) == 0) {
-            throw new Error("Invalid sig component R");
-        }
-
-        if(p_curve.order.compareTo(s) < 0) {
-            throw new Error("Invalid sig component S");
-        }
-        if(p_curve.order.compareTo(r) < 0) {
-            throw new Error("Invalid sig component R");
-        }
-
-        var mulQ, mulS, pointR, r1;
-
-        mulQ = point_q.mul(r);
-        mulS = p_curve.base.mul(s);
-
-        pointR = mulS.add(mulQ);
-        if(pointR.is_zero()) {
-            throw new Error("Invalid sig R point at infinity");
-        }
-
-        r1 = pointR.x.mul(hash_val);
-        r1 = p_curve.truncate(r1);
-
-        return r.compareTo(r1) == 0;
-    },
-    validate = function() {
-        var pub_q = ob.point, pt;
-
-        if(pub_q.is_zero()) {
-            return false;
-        }
-
-        if(p_curve.contains(pub_q) == false) {
-            return false;
-        }
-
-        pt = pub_q.mul(p_curve.order);
-        if(!pt.is_zero()) {
-            return false;
-        }
-
-        return true;
-    };
-    var ob = {
-        x: point_q.x,
-        y: point_q.y,
-        point: point_q,
-        validate: validate,
-        _help_verify: help_verify
+        "x": new Field(modulus, p_x),
+        "y": new Field(modulus, p_y),
     };
     return ob;
 };
 
-var Priv = function(p_curve, param_d) {
-    var field_d = new Field(p_curve.modulus, param_d, true);
+var Pub = function (p_curve, point_q) {
+    var zero = ZERO,
+        ob,
+        help_verify = function (hash_val, s, r) {
+            if (zero.compareTo(s) === 0) {
+                throw new Error("Invalid sig component S");
+            }
+            if (zero.compareTo(r) === 0) {
+                throw new Error("Invalid sig component R");
+            }
 
-    var help_sign = function(hash_v, rand_e) {
-        var eG, r, s, hash_field;
+            if (p_curve.order.compareTo(s) < 0) {
+                throw new Error("Invalid sig component S");
+            }
+            if (p_curve.order.compareTo(r) < 0) {
+                throw new Error("Invalid sig component R");
+            }
 
-        hash_field = new Field(p_curve.modulus, hash_v, true);
-        eG = p_curve.base.mul(rand_e);
-        if(eG.x.value.compareTo(ZERO)==0) {
-            return null;
-        }
-        r = hash_field.mul(eG.x.value);
-        r = p_curve.truncate(r);
-        if(r.compareTo(ZERO) == 0) {
-            return null;
-        }
+            var mulQ, mulS, pointR, r1;
 
-        s = param_d.multiply(r).mod(p_curve.order);
-        s = s.add(rand_e).mod(p_curve.order);
+            mulQ = point_q.mul(r);
+            mulS = p_curve.base.mul(s);
 
-        return {
-            "s": s,
-            "r": r,
-        }
-    },
-    sign = function(hash_v) {
-        var rand_e = p_curve.rand(), ret;
+            pointR = mulS.add(mulQ);
+            if (pointR.is_zero()) {
+                throw new Error("Invalid sig R point at infinity");
+            }
 
-        while(true) {
-            ret = help_sign(hash_v, rand_e);
-            if(ret === null)
-                continue;
+            r1 = pointR.x.mul(hash_val);
+            r1 = p_curve.truncate(r1);
 
-            return ret;
-        }
+            return r.compareTo(r1) === 0;
+        },
+        validate = function () {
+            var pub_q = ob.point, pt;
 
-    },
-    pub = function() {
-        return new Pub(p_curve, p_curve.base.mul(param_d).negate());
+            if (pub_q.is_zero()) {
+                return false;
+            }
+
+            if (p_curve.contains(pub_q) === false) {
+                return false;
+            }
+
+            pt = pub_q.mul(p_curve.order);
+            if (!pt.is_zero()) {
+                return false;
+            }
+
+            return true;
+        };
+    ob = {
+        x: point_q.x,
+        y: point_q.y,
+        point: point_q,
+        validate: validate,
+        help_verify: help_verify
     };
-    var ob = {
-        '_help_sign': help_sign,
+    return ob;
+};
+
+var Priv = function (p_curve, param_d) {
+    var ob,
+        help_sign = function (hash_v, rand_e) {
+            var eG, r, s, hash_field;
+
+            hash_field = new Field(p_curve.modulus, hash_v, true);
+            eG = p_curve.base.mul(rand_e);
+            if (eG.x.value.compareTo(ZERO) === 0) {
+                return null;
+            }
+            r = hash_field.mul(eG.x.value);
+            r = p_curve.truncate(r);
+            if (r.compareTo(ZERO) === 0) {
+                return null;
+            }
+
+            s = param_d.multiply(r).mod(p_curve.order);
+            s = s.add(rand_e).mod(p_curve.order);
+
+            return {
+                "s": s,
+                "r": r,
+            };
+        },
+        sign = function (hash_v) {
+            var rand_e, ret;
+
+            while (true) {
+                rand_e = p_curve.rand();
+
+                ret = help_sign(hash_v, rand_e);
+                if (ret !== null) {
+                    return ret;
+                }
+            }
+
+        },
+        pub = function () {
+            return new Pub(p_curve, p_curve.base.mul(param_d).negate());
+        };
+
+    ob = {
+        'help_sign': help_sign,
         'sign': sign,
         'pub': pub,
     };
     return ob;
-}
+};
 
-var Curve = function(params, param_b, m, k1, k2, base, order) {
-    if(params.base === undefined) {
+var Curve = function (params, param_b, m, k1, k2, base, order) {
+    if (params.base === undefined) {
         params = {
             param_a: params,
             param_b: param_b,
-            m: m, k1: k1, k2: k2,
+            m: m,
+            k1: k1,
+            k2: k2,
             base: base,
             order: order,
-        }
+        };
     }
-    var modulus = ZERO,
-        zero = ZERO,
-    comp_modulus = function(k3, k2, k1) {
-        var modulus = ZERO,
-        modulus = modulus.setBit(k1);
-        modulus = modulus.setBit(k2);
-        modulus = modulus.setBit(k3);
-        ob.modulus = modulus;
-    },
-    set_base = function(base_x, base_y) {
-        ob.base = point(base_x, base_y);
-    },
-    field = function(val) {
-        return new Field(ob.modulus, val);
-    },
-    point = function(px, py) {
-        return new Point(ob, px, py);
-    },
-    truncate = function(value) {
-        var bitl_o = ob.order.bitLength(),
-            xbit = value.bitLength();
+    var ob,
+        comp_modulus = function (k3, k2, k1) {
+            var modulus = ZERO;
+            modulus = modulus.setBit(k1);
+            modulus = modulus.setBit(k2);
+            modulus = modulus.setBit(k3);
+            ob.modulus = modulus;
+        },
+        set_base = function (base_x, base_y) {
+            ob.base = ob.point(base_x, base_y);
+        },
+        field = function (val) {
+            return new Field(ob.modulus, val);
+        },
+        point = function (px, py) {
+            return new Point(ob, px, py);
+        },
+        truncate = function (value) {
+            var bitl_o = ob.order.bitLength(),
+                xbit = value.bitLength();
 
-        while(bitl_o <= xbit) {
-            value = value.clearBit(xbit - 1);
-            xbit = value.bitLength();
-        }
-        return value;
-    },
-    contains = function(point) {
-        var lh, y2;
-        lh = point.x.value.xor(ob.param_a);
-        lh = fmul(lh, point.x.value, ob.modulus);
-        lh = lh.xor(point.y.value);
-        lh = fmul(lh, point.x.value, ob.modulus);
-        lh = lh.xor(ob.param_b);
-        y2 = fmul(point.y.value, point.y.value, ob.modulus);
-        lh = lh.xor(y2);
-
-        return lh.compareTo(ZERO) == 0;
-    },
-    trace = function(value) {
-        return ftrace(value, ob.modulus);
-    },
-    rand = function() {
-        var bits, words, rand, ret, rand_word;
-
-        while(!sjcl.random.isReady()) {
-            true;
-        }
-        bits = ob.order.bitLength();
-        words = Math.floor((bits+23) / 24);
-        rand = sjcl.random.randomWords(words);
-
-        var rand24 = [0];
-        for(var i=0; i< rand.length; i++) {
-            rand24.push(0x0000FF & rand[i]);
-            rand24.push((0x00FF00 & rand[i])>>8);
-            rand24.push((0xFF0000 & rand[i])>>16);
-        }
-        ret = new Big(rand24);
-
-        return ret;
-    },
-    keygen = function() {
-        var rand_d = ob.rand(), priv, pub;
-        while(true) {
-            priv = new Priv(ob, rand_d);
-            pub = priv.pub();
-            if(pub.validate()) {
-                return priv;
+            while (bitl_o <= xbit) {
+                value = value.clearBit(xbit - 1);
+                xbit = value.bitLength();
             }
-        }
-    };
+            return value;
+        },
+        contains = function (point) {
+            var lh, y2;
+            lh = point.x.value.xor(ob.param_a);
+            lh = fmul(lh, point.x.value, ob.modulus);
+            lh = lh.xor(point.y.value);
+            lh = fmul(lh, point.x.value, ob.modulus);
+            lh = lh.xor(ob.param_b);
+            y2 = fmul(point.y.value, point.y.value, ob.modulus);
+            lh = lh.xor(y2);
 
-    var ob = {
+            return lh.compareTo(ZERO) === 0;
+        },
+        trace = function (value) {
+            return ftrace(value, ob.modulus);
+        },
+        rand = function () {
+            var i, bits, words, rand_b, ret, rand24, wait = 0;
+
+            while (!sjcl.random.isReady()) {
+                wait++;
+            }
+            ob.wait = wait;
+            bits = ob.order.bitLength();
+            words = Math.floor((bits + 23) / 24);
+            rand_b = sjcl.random.randomWords(words);
+
+            rand24 = [0];
+            for (i = 0; i < rand_b.length; i++) {
+                rand24.push(0x0000FF & rand_b[i]);
+                rand24.push((0x00FF00 & rand_b[i]) >> 8);
+                rand24.push((0xFF0000 & rand_b[i]) >> 16);
+            }
+            ret = new Big(rand24);
+
+            return ret;
+        },
+        keygen = function () {
+            var rand_d = ob.rand(), priv, pub;
+            while (true) {
+                priv = new Priv(ob, rand_d);
+                pub = priv.pub();
+                if (pub.validate()) {
+                    return priv;
+                }
+            }
+        };
+
+    ob = {
         "field": field,
         "point": point,
         "comp_modulus": comp_modulus,
         "set_base": set_base,
-        "modulus": modulus,
+        "modulus": ZERO,
         "truncate": truncate,
         "contains": contains,
         "trace": trace,
@@ -3611,13 +3630,13 @@ var Curve = function(params, param_b, m, k1, k2, base, order) {
         "param_m": params.m,
     };
     ob.comp_modulus(params.m, params.k1, params.k2);
-    if(params.base.x === undefined) {
-        ob.set_base(params.base)
+    if (params.base.x === undefined) {
+        ob.set_base(params.base);
     } else {
         ob.set_base(params.base.x, params.base.y);
     }
     return ob;
-}
+};
 
 Curve.defined = {
     DSTU_B_257: new Curve({
@@ -3635,18 +3654,19 @@ Curve.defined = {
         k1: 12,
         k2: 0,
     })
-}
-module.exports = Curve
-module.exports.Field = Field
-module.exports.Priv = Priv
-module.exports.Keycoder = Keycoder
-module.exports.Big = Big
+};
 
-},{"./3rtparty/jsbn.packed.js":17,"./keycoder.js":20,"sjcl":"4NrMYi"}],"jkurwa":[function(require,module,exports){
-module.exports=require('B9c0rZ');
-},{}],20:[function(require,module,exports){
+module.exports = Curve;
+module.exports.Field = Field;
+module.exports.Priv = Priv;
+module.exports.Keycoder = Keycoder;
+module.exports.Big = Big;
+
+},{"./3rtparty/jsbn.packed.js":17,"./keycoder.js":20,"sjcl":"4NrMYi"}],20:[function(require,module,exports){
 var asn1 = require('asn1.js'),
     Big = require('./3rtparty/jsbn.packed.js'),
+    rfc3280 = require('./rfc3280.js'),
+    Certificate = rfc3280.Certificate,
     Buffer = require('buffer').Buffer;
 
 var Keycoder = function() {
@@ -3748,6 +3768,24 @@ var Keycoder = function() {
             }
             return ret;
         },
+        strFromUtf8Ab: function(ab) {
+                return decodeURIComponent(escape(String.fromCharCode.apply(null, ab)));
+        },
+        parse_dn: function(asn_ob) {
+            var ret, i, j, part;
+            ret = {};
+            for(i = 0; i < asn_ob.length; i++) {
+                for(j = 0; j < asn_ob[i].length; j++) {
+                    part = asn_ob[i][j];
+                    if ((part.value[0] == 0xC) && part.value[1] === part.value.length -2) {
+                        ret[part.type] = ob.strFromUtf8Ab(part.value.slice(2));
+                    } else {
+                        ret[part.type] = part.value;
+                    }
+                }
+            }
+            return ret;
+        },
         to_pem: function(b64) {
             return [PEM_KEY_B, b64, PEM_KEY_E].join('\n');
         },
@@ -3812,7 +3850,7 @@ var Keycoder = function() {
         privkey_parse: function(data) {
             var priv = ob.Privkey.decode(data, 'der');
             return {
-                param_d: new Big(ob.add_zero(priv.param_d)),
+                param_d: new Big(ob.add_zero(priv.param_d, true)),
                 curve: {
                     m: priv.priv0.p.p.p.param_m,
                     k1: priv.priv0.p.p.p.param_k1,
@@ -3825,6 +3863,18 @@ var Keycoder = function() {
                 format: "privkey",
             }
         },
+        cert_parse: function(data) {
+            var cert = Certificate.decode(data, 'der');
+            var tbs = cert.tbsCertificate;
+            var pub = tbs.subjectPublicKeyInfo.subjectPublicKey.data.slice(2);
+            _c = cert;
+            return {
+                format: "x509",
+                pubkey: new Big(ob.add_zero(pub, true)),
+                issuer: ob.parse_dn(cert.tbsCertificate.issuer.value),
+                subject: ob.parse_dn(cert.tbsCertificate.subject.value)
+            };
+        },
         guess_parse: function(indata) {
             var data = indata, ret, tr;
             data = new Buffer(indata, 'raw');
@@ -3833,6 +3883,7 @@ var Keycoder = function() {
                 'iit_parse',
                 'pbes2_parse',
                 'privkey_parse',
+                'cert_parse',
             ];
 
             for(var i=0; i<tr.length; i++) {
@@ -3853,7 +3904,215 @@ var Keycoder = function() {
 
 module.exports = Keycoder
 
-},{"./3rtparty/jsbn.packed.js":17,"asn1.js":"RxwtOC","buffer":"VTj7jY"}],21:[function(require,module,exports){
+},{"./3rtparty/jsbn.packed.js":17,"./rfc3280.js":21,"asn1.js":"RxwtOC","buffer":"VTj7jY"}],21:[function(require,module,exports){
+var asn1 = require('asn1.js');
+
+var CRLReason = asn1.define('CRLReason', function() {
+  this.enum({
+    0: 'unspecified',
+    1: 'keyCompromise',
+    2: 'CACompromise',
+    3: 'affiliationChanged',
+    4: 'superseded',
+    5: 'cessationOfOperation',
+    6: 'certificateHold',
+    8: 'removeFromCRL',
+    9: 'privilegeWithdrawn',
+    10: 'AACompromise'
+  });
+});
+exports.CRLReason = CRLReason;
+
+var AlgorithmIdentifier = asn1.define('AlgorithmIdentifier', function() {
+  this.seq().obj(
+    this.key('algorithm').objid(),
+    this.key('parameters').optional().any()
+  );
+});
+exports.AlgorithmIdentifier = AlgorithmIdentifier;
+
+var Certificate = asn1.define('Certificate', function() {
+  this.seq().obj(
+    this.key('tbsCertificate').use(TBSCertificate),
+    this.key('signatureAlgorithm').use(AlgorithmIdentifier),
+    this.key('signature').bitstr()
+  );
+});
+exports.Certificate = Certificate;
+
+var TBSCertificate = asn1.define('TBSCertificate', function() {
+  this.seq().obj(
+    this.key('version').def('v1').explicit(0).use(Version),
+    this.key('serialNumber').use(CertificateSerialNumber),
+    this.key('signature').use(AlgorithmIdentifier),
+    this.key('issuer').use(Name),
+    this.key('validity').use(Validity),
+    this.key('subject').use(Name),
+    this.key('subjectPublicKeyInfo').use(SubjectPublicKeyInfo),
+
+    // TODO(indutny): validate that version is v2 or v3
+    this.key('issuerUniqueID').optional().implicit(1).use(UniqueIdentifier),
+    this.key('subjectUniqueID').optional().implicit(2).use(UniqueIdentifier),
+
+    // TODO(indutny): validate that version is v3
+    this.key('extensions').optional().implicit(3).seq().obj(
+        this.key("e").use(Extensions)
+    )
+  );
+});
+exports.TBSCertificate = TBSCertificate;
+
+var Version = asn1.define('Version', function() {
+  this.int({
+    0: 'v1',
+    1: 'v2',
+    2: 'v3'
+  });
+});
+exports.Version = Version;
+
+var CertificateSerialNumber = asn1.define('CertificateSerialNumber',
+                                          function() {
+  this.int();
+});
+exports.CertificateSerialNumber = CertificateSerialNumber;
+
+var Validity = asn1.define('Validity', function() {
+  this.seq().obj(
+    this.key('notBefore').use(Time),
+    this.key('notAfter').use(Time)
+  );
+});
+exports.Validity = Validity;
+
+var Time = asn1.define('Time', function() {
+  this.choice({
+    utcTime: this.utctime(),
+    genTime: this.gentime()
+  });
+});
+exports.Time = Time;
+
+var UniqueIdentifier = asn1.define('UniqueIdentifier', function() {
+  this.bitstr();
+});
+exports.UniqueIdentifier = UniqueIdentifier;
+
+var SubjectPublicKeyInfo = asn1.define('SubjectPublicKeyInfo', function() {
+  this.seq().obj(
+    this.key('algorithm').use(AlgorithmIdentifier),
+    this.key('subjectPublicKey').bitstr()
+  );
+});
+exports.SubjectPublicKeyInfo = SubjectPublicKeyInfo;
+
+var Extensions = asn1.define('Extensions', function() {
+  this.seqof(Extension)
+});
+exports.Extensions = Extensions;
+
+var Extension = asn1.define('Extension', function() {
+  this.seq().obj(
+    this.key('extnID').objid(),
+    this.key('critical').bool().def(false),
+    this.key('extnValue').octstr()
+  );
+});
+exports.Extension = Extension;
+
+var Name = asn1.define('Name', function() {
+  this.choice({
+    rdn: this.use(RDNSequence)
+  });
+});
+exports.Name = Name;
+
+var RDNSequence = asn1.define('RDNSequence', function() {
+  this.seqof(RelativeDistinguishedName);
+});
+exports.RDNSequence = RDNSequence;
+
+var RelativeDistinguishedName = asn1.define('RelativeDistinguishedName',
+                                            function() {
+  this.setof(AttributeTypeAndValue);
+});
+exports.RelativeDistinguishedName = RelativeDistinguishedName;
+
+var AttributeTypeAndValue = asn1.define('AttributeTypeAndValue', function() {
+  this.seq().obj(
+    this.key('type').use(AttributeType),
+    this.key('value').use(AttributeValue)
+  );
+});
+exports.AttributeTypeAndValue = AttributeTypeAndValue;
+
+var AttributeObjId = {
+    '2 5 4 3': 'commonName',
+    '2 5 4 4': 'surname',
+    '2 5 4 5': 'serialNumber',
+    '2 5 4 6': 'countryName',
+    '2 5 4 7': 'localityName',
+    '2 5 4 8': 'stateOrProvinceName',
+    '2 5 4 9': 'streetAddress',
+    '2 5 4 10': 'organizationName',
+    '2 5 4 11': 'organizationalUnitName',
+    '2 5 4 12': 'title',
+    '2 5 4 13': 'description',
+    '2 5 4 14': 'searchGuide',
+    '2 5 4 15': 'businessCategory',
+    '2 5 4 16': 'postalAddress',
+    '2 5 4 17': 'postalCode',
+    '2 5 4 18': 'postOfficeBox',
+    '2 5 4 19': 'physicalDeliveryOfficeName',
+    '2 5 4 20': 'telephoneNumber',
+    '2 5 4 21': 'telexNumber',
+    '2 5 4 22': 'teletexTerminalIdentifier',
+    '2 5 4 23': 'facsimileTelephoneNumber',
+    '2 5 4 24': 'x121Address',
+    '2 5 4 25': 'internationaliSDNNumber',
+    '2 5 4 26': 'registeredAddress',
+    '2 5 4 27': 'destinationIndicator',
+    '2 5 4 28': 'preferredDeliveryMethod',
+    '2 5 4 29': 'presentationAddress',
+    '2 5 4 30': 'supportedApplicationContext',
+    '2 5 4 31': 'member',
+    '2 5 4 32': 'owner',
+    '2 5 4 33': 'roleOccupant',
+    '2 5 4 34': 'seeAlso',
+    '2 5 4 35': 'userPassword',
+    '2 5 4 36': 'userCertificate',
+    '2 5 4 37': 'cACertificate',
+    '2 5 4 38': 'authorityRevocationList',
+    '2 5 4 39': 'certificateRevocationList',
+    '2 5 4 40': 'crossCertificatePair',
+    '2 5 4 41': 'name',
+    '2 5 4 42': 'givenName',
+    '2 5 4 43': 'initials',
+    '2 5 4 44': 'generationQualifier',
+    '2 5 4 45': 'x500UniqueIdentifier',
+    '2 5 4 46': 'dnQualifier',
+    '2 5 4 47': 'enhancedSearchGuide',
+    '2 5 4 48': 'protocolInformation',
+    '2 5 4 49': 'distinguishedName',
+    '2 5 4 50': 'uniqueMember',
+    '2 5 4 51': 'houseIdentifier',
+    '2 5 4 52': 'supportedAlgorithms',
+    '2 5 4 53': 'deltaRevocationList',
+    '2 5 4 54': 'dmdName',
+    '2 5 4 65': 'pseudonym',
+    '2 5 4 72': 'role',
+}
+var AttributeType = asn1.define('AttributeType', function() {
+  this.objid(AttributeObjId)
+});
+exports.AttributeType = AttributeType;
+
+var AttributeValue = asn1.define('AttributeValue', function() {
+  this.any();
+});
+exports.AttributeValue = AttributeValue;
+
+},{"asn1.js":"RxwtOC"}],22:[function(require,module,exports){
 /*jslint plusplus: true */
 
 "use strict";
@@ -3898,7 +4157,7 @@ function setup(cb) {
 
 exports.setup = setup;
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 
 var ia2hex = function(val) {
     var ret = '', i, c;
@@ -3942,7 +4201,7 @@ var Document = function(cb) {
 
 module.exports.Document = Document;
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 /*
  *
  * Interface code for emscripten-compiled gost89 (dstu200) code
@@ -4026,7 +4285,7 @@ module.exports.decode_data = decode_data
 module.exports.convert_password = convert_password;
 module.exports.compute_hash = compute_hash
 
-},{"./util.js":28}],"0YlI+X":[function(require,module,exports){
+},{"./util.js":29}],"0YlI+X":[function(require,module,exports){
 var Curve = require('jkurwa'), priv=null,
     dnd = require('./dnd.js'),
     view = require('./ui.js'),
@@ -4078,18 +4337,23 @@ function feedback_cb(evt) {
         vm.pw_visible(false);
     }
     if(evt.key === true) {
-        var names = {
-            privkey: "standard unencrypted",
-            IIT: "proprietarty encrypted",
-            PBES2: "standard encrypted",
-        };
-        vm.key_info("Found key in " + names[keys.key_info.format] + " format");
-        vm.dnd_visible(false);
-        vm.key_controls_visible(true);
-        vm.key_info_visible(true);
+        vm.dnd_text("Теперь бросайте сертификат");
     }
     if(evt.key === false) {
         vm.set_error("You dropped some file, but it's not private key (or we maybe we can't read it)");
+    }
+    if(evt.cert === true) {
+        vm.dnd_text("Теперь бросайте ключ");
+    }
+
+    if((evt.key === true) || (evt.cert === true)) {
+        if(keys.is_ready_sign()) {
+            vm.dnd_visible(false);
+            vm.key_controls_visible(true);
+            vm.key_info_visible(true);
+        } else {
+            vm.dnd_visible(true);
+        }
     }
 }
 
@@ -4131,6 +4395,7 @@ function file_dropped(u8) {
 
 function setup() {
     keys = new Keyholder({need: need_cb, feedback: feedback_cb});
+    _k = keys;
     vm = new view.Main({
         password: password_cb,
         pem: pem_cb,
@@ -4142,23 +4407,41 @@ function setup() {
     ko.applyBindings(vm, document.getElementById("ui"));
     ko.applyBindings(doc, document.getElementById("document"));
 
+    vm.dnd_text("Файлы бросать сюда");
     vm.visible(true);
 }
 
 module.exports.setup = setup;
 exports.setup = setup;
 
-},{"./dnd.js":21,"./document.js":22,"./dstu.js":23,"./keyholder.js":26,"./ui.js":27,"jkurwa":"B9c0rZ"}],"ui":[function(require,module,exports){
+},{"./dnd.js":22,"./document.js":23,"./dstu.js":24,"./keyholder.js":27,"./ui.js":28,"jkurwa":"B9c0rZ"}],"ui":[function(require,module,exports){
 module.exports=require('0YlI+X');
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 var Curve = require('jkurwa'),
     util = require('./util.js'),
     dstu = require('./dstu.js');
 
 var Keyholder = function(cb) {
-    var ob, keycoder, have;
+    var ob, keycoder, have, signer, pem,
+        ready_sign;
 
     keycoder = new Curve.Keycoder();
+    is_ready_sign = function() {
+        return (
+                (ob.key !== undefined) && 
+                (ob.cert !== undefined) &&
+                ob.cert_key_match(ob.key, ob.cert)
+        )
+    };
+    cert_key_match = function(key, cert) {
+        var key_curve = ob.get_curve();
+        var key_priv = Curve.Priv(key_curve, ob.key.param_d);
+        var key_pub = key_priv.pub();
+
+        var cert_pub_point = key_curve.point(cert.pubkey);
+
+        return key_pub.point.equals(cert_pub_point);
+    };
     have_key = function(data) {
         try {
             var parsed = keycoder.parse(data);
@@ -4180,6 +4463,10 @@ var Keyholder = function(cb) {
             ob.encrypted_key = parsed;
             cb.need({password: true});
             break;
+        case 'x509':
+            ob.cert = parsed;
+            cb.feedback({cert: true});
+            break;
         default:
             console.log("have something unknown");
         }
@@ -4199,16 +4486,16 @@ var Keyholder = function(cb) {
                     return;
                 }
 
-                cb.feedback({password: true, key: true});
+                cb.feedback({password: true});
                 ob.raw_key = decoded;
                 have({key: decoded})
             }
         }
-    },
-    signer = function() {
+    };
+    get_curve = function() {
         var p = ob.key;
 
-        var curve = new Curve({
+        return curve = new Curve({
             a: p.curve.a,
             b: p.curve.b,
             m: p.curve.m,
@@ -4217,8 +4504,13 @@ var Keyholder = function(cb) {
             order: p.curve.order,
             base: p.curve.base,
         });
+    };
+    signer = function() {
+        var p = ob.key;
+        var curve = ob.get_curve();
+
         return new Curve.Priv(curve, p.param_d);
-    },
+    };
     pem = function() {
         return keycoder.to_pem(util.numberB64(ob.raw_key, 42));
     };
@@ -4227,6 +4519,9 @@ var Keyholder = function(cb) {
         have: have,
         get_pem: pem,
         get_signer: signer,
+        get_curve: get_curve,
+        is_ready_sign: is_ready_sign,
+        cert_key_match: cert_key_match,
         key_info: {
         }
     };
@@ -4235,7 +4530,7 @@ var Keyholder = function(cb) {
 
 module.exports = Keyholder;
 
-},{"./dstu.js":23,"./util.js":28,"jkurwa":"B9c0rZ"}],27:[function(require,module,exports){
+},{"./dstu.js":24,"./util.js":29,"jkurwa":"B9c0rZ"}],28:[function(require,module,exports){
 var Main = function (cb) {
     var ob;
 
@@ -4251,6 +4546,7 @@ var Main = function (cb) {
     var error_visible = ko.observable(false);
     var error_text = ko.observable("");
     var visible = ko.observable(false);
+    var dnd_text = ko.observable("");
 
     var accept_pw = function() {
         var value = pw();
@@ -4313,6 +4609,7 @@ var Main = function (cb) {
         error_text: error_text,
         error_visible: error_visible,
         visible: visible,
+        dnd_text: dnd_text,
     };
     return ob;
 }
@@ -4320,7 +4617,7 @@ var Main = function (cb) {
 exports.Main = Main;
 module.exports.Main = Main;
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 var read_buf = function(ptr, sz) {
     var ret = [], x=0;
     for(var i = 0; i < sz; i++) {
@@ -4400,7 +4697,7 @@ exports.asnbuf = asnbuf
 exports.read_buf = read_buf
 exports.numberB64 = numberB64
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -4762,14 +5059,14 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":31}],30:[function(require,module,exports){
+},{"util/":32}],31:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -5359,7 +5656,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("UPikzY"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":30,"UPikzY":43,"inherits":42}],"buffer":[function(require,module,exports){
+},{"./support/isBuffer":31,"UPikzY":44,"inherits":43}],"buffer":[function(require,module,exports){
 module.exports=require('VTj7jY');
 },{}],"VTj7jY":[function(require,module,exports){
 /*!
@@ -6511,7 +6808,7 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":34,"ieee754":35}],34:[function(require,module,exports){
+},{"base64-js":35,"ieee754":36}],35:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -6634,7 +6931,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	module.exports.fromByteArray = uint8ToBase64
 }())
 
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -6720,7 +7017,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 var Buffer = require('buffer').Buffer;
 var intSize = 4;
 var zeroBuffer = new Buffer(intSize); zeroBuffer.fill(0);
@@ -6757,7 +7054,7 @@ function hash(buf, fn, hashSize, bigEndian) {
 
 module.exports = { hash: hash };
 
-},{"buffer":"VTj7jY"}],37:[function(require,module,exports){
+},{"buffer":"VTj7jY"}],38:[function(require,module,exports){
 var Buffer = require('buffer').Buffer
 var sha = require('./sha')
 var sha256 = require('./sha256')
@@ -6856,7 +7153,7 @@ each(['createCredentials'
   }
 })
 
-},{"./md5":38,"./rng":39,"./sha":40,"./sha256":41,"buffer":"VTj7jY"}],38:[function(require,module,exports){
+},{"./md5":39,"./rng":40,"./sha":41,"./sha256":42,"buffer":"VTj7jY"}],39:[function(require,module,exports){
 /*
  * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
  * Digest Algorithm, as defined in RFC 1321.
@@ -7021,7 +7318,7 @@ module.exports = function md5(buf) {
   return helpers.hash(buf, core_md5, 16);
 };
 
-},{"./helpers":36}],39:[function(require,module,exports){
+},{"./helpers":37}],40:[function(require,module,exports){
 // Original code adapted from Robert Kieffer.
 // details at https://github.com/broofa/node-uuid
 (function() {
@@ -7054,7 +7351,7 @@ module.exports = function md5(buf) {
 
 }())
 
-},{}],40:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
  * in FIPS PUB 180-1
@@ -7157,7 +7454,7 @@ module.exports = function sha1(buf) {
   return helpers.hash(buf, core_sha1, 20, true);
 };
 
-},{"./helpers":36}],41:[function(require,module,exports){
+},{"./helpers":37}],42:[function(require,module,exports){
 
 /**
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-256, as defined
@@ -7238,7 +7535,7 @@ module.exports = function sha256(buf) {
   return helpers.hash(buf, core_sha256, 32, true);
 };
 
-},{"./helpers":36}],42:[function(require,module,exports){
+},{"./helpers":37}],43:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -7263,7 +7560,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],43:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -7328,11 +7625,11 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],44:[function(require,module,exports){
-module.exports=require(30)
 },{}],45:[function(require,module,exports){
 module.exports=require(31)
-},{"./support/isBuffer":44,"UPikzY":43,"inherits":42}],46:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
+module.exports=require(32)
+},{"./support/isBuffer":45,"UPikzY":44,"inherits":43}],47:[function(require,module,exports){
 var indexOf = require('indexof');
 
 var Object_keys = function (obj) {
@@ -7472,7 +7769,7 @@ exports.createContext = Script.createContext = function (context) {
     return copy;
 };
 
-},{"indexof":47}],47:[function(require,module,exports){
+},{"indexof":48}],48:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
