@@ -36,6 +36,8 @@ function feedback_cb(evt) {
         view.dnd_visible(false);
         ident.set_ident(keys.cert.subject, keys.cert.extension, keys.cert.pubkey, keys.cert.valid);
         issuer_ident.set_ident(keys.cert.issuer);
+
+        document.getElementById("pem").innerText = keys.get_pem({cert: true});
     }
 };
 

@@ -11,9 +11,11 @@
 
 </div>
 
-<div id="ident">
-    <h3 data-bind="text: commonName"></h3>
-    <p data-bind="text: title"> </p>
+<div id="ident" style="float: left; width: 50%">
+    <h3>Удостоверяет личность</h3>
+    <div>
+        <span data-bind="text: title"> </span> <span data-bind="text: commonName"></span>
+    </div>
 
     <div>
         Имя отчество: <span data-bind="text: givenName"></span>.
@@ -21,12 +23,14 @@
     <div>
         Фамилия: <span data-bind="text: surname"></span>.
     </div>
-
+    <div>
+        Индивидуальный налоговый номер <span data-bind="text: ipn"></span>
+    </div>
     <div>
         Организация: <span data-bind="text: organizationName"></span>.
     </div>
     <div>
-        Отдел: <span data-bind="text: organizationalUnitName"></span>.
+        Отдел: <span data-bind="text: organizationalUnitName, visible: organizationalUnitName.length"></span>.
     </div>
 
     <div>
@@ -35,19 +39,19 @@
     <div>
         Номер сертификата <span data-bind="text: serialNumber"></span>
     </div>
-    <div>
-        Индивидуальный налоговый номер <span data-bind="text: ipn"></span>
-    </div>
+
     <div>
         Действителен с <span data-bind="text: validFrom"></span> по <span data-bind="text: validTo"></span>.
     </div>
-    <div>Удостоверяет владение ключем <span data-bind="text: pubkey"></span></div>
+    <div>Владеет ключем <span data-bind="text: pubkey"></span></div>
 </div>
 
 <div id="issuer_ident">
-    <h3>Выдан <span data-bind="text: commonName"></span></h3>
-    <p data-bind="text: title"> </p>
-
+    <h3>Выдан</h3>
+    <div>
+        <span data-bind="text: title"> </span>
+        <span data-bind="text: commonName"></span>
+    </div>
     <div>
         Организация: <span data-bind="text: organizationName"></span>.
     </div>
@@ -62,9 +66,13 @@
     <div>
         Номер сертификата <span data-bind="text: serialNumber"></span>
     </div>
-
 </div>
 
+<div style="clear: both"></div>
+
+<h3>Сертификат в виде PEM-структуры</h3>
+<pre id="pem">
+</pre>
 
 <script>
     require("certui").setup();

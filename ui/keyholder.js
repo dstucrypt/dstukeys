@@ -47,6 +47,7 @@ var Keyholder = function(cb) {
             break;
         case 'x509':
             ob.cert = parsed;
+            ob.raw_cert = data;
             cb.feedback({cert: true});
             break;
         default:
@@ -93,8 +94,23 @@ var Keyholder = function(cb) {
 
         return new Curve.Priv(curve, p.param_d);
     };
-    pem = function() {
-        return keycoder.to_pem(util.numberB64(ob.raw_key, 42));
+    pem = function(what) {
+        var ret;
+        if(what === undefined) {
+            what = {key: true};
+        }
+
+        if(what.key === true) {
+            ret = keycoder.to_pem(util.numberB64(ob.raw_key, 42));
+            ret += '\n';
+        }
+
+        if(what.cert === true) {
+            ret = keycoder.to_pem(util.numberB64(ob.raw_cert, 42), 'CERTIFICATE');
+            ret += '\n';
+        }
+
+        return ret;
     };
 
     ob = {
