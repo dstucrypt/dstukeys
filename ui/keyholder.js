@@ -42,6 +42,7 @@ var Keyholder = function(cb) {
         case 'IIT':
         case 'PBES2':
             ob.encrypted_key = parsed;
+            cb.feedback({crypted_key: true})
             cb.need({password: true});
             break;
         case 'x509':

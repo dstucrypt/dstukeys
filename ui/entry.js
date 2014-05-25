@@ -57,7 +57,7 @@ function feedback_cb(evt) {
         vm.set_error("You dropped some file, but it's not private key (or we maybe we can't read it)");
     }
     if(evt.cert === true) {
-        ident.set_ident(keys.cert.subject, keys.cert.extension);
+        ident.set_ident(keys.cert.subject, keys.cert.extension, keys.cert.pubkey);
         ident.visible(true);
         vm.dnd_text("Теперь бросайте ключ");
     }
