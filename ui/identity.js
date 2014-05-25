@@ -39,6 +39,22 @@ var Ident = function() {
         }
     };
 
+    var located = function() {
+        var city = localityName(),
+            province = stateOrProvinceName();
+
+        if(!((city.indexOf(".") !== -1) && (city.indexOf(".") + 1) === city.indexOf(" ")))
+        {
+            city = 'м. ' + city;
+        }
+
+        if((province !== undefined) && province.length > 0) {
+            return city + ", " + province + " область";
+        }
+
+        return city;
+    }
+
     ob = {
         visible: visible,
         commonName: commonName,
@@ -55,6 +71,7 @@ var Ident = function() {
         pubkey: pubkey,
         validFrom: validFrom,
         validTo: validTo,
+        located: located,
     };
     return ob;
 }

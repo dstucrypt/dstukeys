@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Просмотр сертификата</h1>
+
+<h1>Сертификат</h1>
 
 
 <div id="ui">
@@ -11,15 +12,57 @@
 </div>
 
 <div id="ident">
-    {% for attr, title in show_attrs %}
-    <div>{{title}}: <span data-bind="text: {{attr}}" ></span></div>
-    {% endfor %}
+    <h3 data-bind="text: commonName"></h3>
+    <p data-bind="text: title"> </p>
+
+    <div>
+        Имя отчество: <span data-bind="text: givenName"></span>.
+    </div>
+    <div>
+        Фамилия: <span data-bind="text: surname"></span>.
+    </div>
+
+    <div>
+        Организация: <span data-bind="text: organizationName"></span>.
+    </div>
+    <div>
+        Отдел: <span data-bind="text: organizationalUnitName"></span>.
+    </div>
+
+    <div>
+        Зарегистрирован в <span data-bind="text: located()"></span>
+    </div>
+    <div>
+        Номер сертификата <span data-bind="text: serialNumber"></span>
+    </div>
+    <div>
+        Индивидуальный налоговый номер <span data-bind="text: ipn"></span>
+    </div>
+    <div>
+        Действителен с <span data-bind="text: validFrom"></span> по <span data-bind="text: validTo"></span>.
+    </div>
+    <div>Удостоверяет владение ключем <span data-bind="text: pubkey"></span></div>
 </div>
 
 <div id="issuer_ident">
-    {% for attr, title in show_attrs %}
-    <div>{{title}}: <span data-bind="text: {{attr}}" ></span></div>
-    {% endfor %}
+    <h3>Выдан <span data-bind="text: commonName"></span></h3>
+    <p data-bind="text: title"> </p>
+
+    <div>
+        Организация: <span data-bind="text: organizationName"></span>.
+    </div>
+    <div>
+        Отдел <span data-bind="text: organizationalUnitName"></span>.
+    </div>
+
+    <div>
+        Зарегистрирован в <span data-bind="text: located()"></span>
+    </div>
+
+    <div>
+        Номер сертификата <span data-bind="text: serialNumber"></span>
+    </div>
+
 </div>
 
 
