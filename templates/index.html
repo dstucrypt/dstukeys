@@ -1,26 +1,5 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="utf-8" />
-    <title>Электронний Цифровий Підпис</title>
-</head>
-<body>
-    <script type="text/javascript" src="/js/uadstu.js"></script>
-    <script type="text/javascript" src="/js/knockout-3.1.0.js"></script>
-    <script type="text/javascript" src="/js/build.js"></script>
-
-    <style>
-    .field_error { 
-        border: solid 1px red;
-    }
-    .error {
-        color: red;
-    }
-    #document textarea {
-        width: 75%;
-        height: 65%;
-    }
-    </style>
+{% extends "base.html" %}
+{% block content %}
 
     <h1>Электронная цифровая подпись</h1>
 
@@ -79,24 +58,6 @@
         require('ui').setup();
     </script>
 
-    <p>
-    Исходный код: <a href="https://github.com/muromec/dstukeys">github.com/muromec/dstukeys</a>, Закон України <a href="http://zakon4.rada.gov.ua/laws/show/852-15">Про електронний цифровий підпис</a>, стандарт <a href="http://info-stand.com/downloads/dstu/dstu-4145-2002/dstu-4145-2002.pdf">ДСТУ-4145-2002</a>, Акредитований центр сертифікації ключів Міндоходів (<a href="http://acskidd.gov.ua/">сайт</a>), реализация ДСТУ 4145 для OpenSSL (<a href="http://www.crypto.org.ua/">сайт</a>).
-    </p>
-    <p>Copyright Ilya Petrov <a href="https://facebook.com/ilya.muromec">FB</a>, <i>ilya.muromec@gmail.com</i>, 2014. You can send tips to 15qmFc9MR8z8YFBqkHcSoQGGxQgVrWdn7S.</p>
+    {% include "footer.html" %}
 
-    <style>
-    #drop_zone {
-        border: 2px dashed #bbb;
-        -moz-border-radius: 5px;
-        -webkit-border-radius: 5px;
-        border-radius: 5px;
-        padding: 25px;
-        text-align: center;
-        font: 20pt bold 'Vollkorn';
-        color: #bbb;
-    }
-    </style>
-    <script>
-
-    </script>
-</body>
+{% endblock %}

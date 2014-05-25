@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="utf-8" />
+    <title>Электронний Цифровий Підпис</title>
+</head>
+<body>
+    <script type="text/javascript" src="{{ static_url("js/uadstu.js") }}" ></script>
+    <script type="text/javascript" src="{{ static_url("js/knockout-3.1.0.js") }}"></script>
+    <script type="text/javascript" src="{{ static_url("js/build.js") }}"></script>
+
+    <style>
+    .field_error { 
+        border: solid 1px red;
+    }
+    .error {
+        color: red;
+    }
+    #document textarea {
+        width: 75%;
+        height: 65%;
+    }
+    
+    #drop_zone {
+        border: 2px dashed #bbb;
+        -moz-border-radius: 5px;
+        -webkit-border-radius: 5px;
+        border-radius: 5px;
+        padding: 25px;
+        text-align: center;
+        font: 20pt bold 'Vollkorn';
+        color: #bbb;
+    }
+    </style>
+
+
+    {% block content %}
+    {% endblock %}
+
+    <style>
+    #drop_zone {
+        border: 2px dashed #bbb;
+        -moz-border-radius: 5px;
+        -webkit-border-radius: 5px;
+        border-radius: 5px;
+        padding: 25px;
+        text-align: center;
+        font: 20pt bold 'Vollkorn';
+        color: #bbb;
+    }
+    </style>
+    <script>
+
+    </script>
+</body>
+</html>
