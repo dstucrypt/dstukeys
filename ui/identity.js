@@ -1,15 +1,42 @@
-var Ident = function(cb) {
+var Ident = function() {
     var ob;
 
     var visible = ko.observable(false);
     var commonName = ko.observable("");
     var title = ko.observable("");
     var ipn = ko.observable("");
+    var givenName = ko.observable("");
+    var surname = ko.observable("");
+    var localityName = ko.observable("");
+    var stateOrProvinceName = ko.observable("");
+    var organizationName = ko.observable("");
+    var organizationalUnitName = ko.observable("");
+    var serialNumber = ko.observable("");
+    var pubkey = ko.observable("");
+    var validFrom = ko.observable("");
+    var validTo = ko.observable("");
 
-    var set_ident = function(x509Name, ext) {
+    var set_ident = function(x509Name, ext, pubkey_bn, valid_on) {
         title(x509Name.title);
+        givenName(x509Name.givenName);
+        surname(x509Name.surname);
+        stateOrProvinceName(x509Name.stateOrProvinceName);
+        organizationName(x509Name.organizationName);
+        organizationalUnitName(x509Name.organizationalUnitName);
+        localityName(x509Name.localityName);
+        serialNumber(x509Name.serialNumber);
         commonName(x509Name.commonName);
-        ipn(ext.ipn.EDRPOU);
+
+        if(ext !== undefined) {
+            ipn(ext.ipn.EDRPOU);
+        }
+        if(pubkey_bn !== undefined) {
+            pubkey(pubkey_bn.toString(16));
+        }
+        if(valid_on !== undefined) {
+            validFrom(valid_on.from);
+            validTo(valid_on.to);
+        }
     };
 
     ob = {
@@ -18,6 +45,16 @@ var Ident = function(cb) {
         ipn: ipn,
         title: title,
         set_ident: set_ident,
+        givenName: givenName,
+        surname: surname,
+        stateOrProvinceName: stateOrProvinceName,
+        organizationName: organizationName,
+        organizationalUnitName: organizationalUnitName,
+        localityName: localityName,
+        serialNumber: serialNumber,
+        pubkey: pubkey,
+        validFrom: validFrom,
+        validTo: validTo,
     };
     return ob;
 }
