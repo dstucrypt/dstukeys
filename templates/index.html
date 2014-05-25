@@ -57,6 +57,12 @@
         ( <span data-bind="text: title" ></span> ).
     </div>
 
+    <div id="stored">
+        <div data-bind="foreach: items">
+            <span data-bind="text: type, click: select"></span>
+        </div>
+    </div>
+
     <script>
         require('ui').setup();
     </script>

@@ -4,7 +4,7 @@ var Curve = require('jkurwa'),
 
 var Keyholder = function(cb) {
     var ob, keycoder, have, signer, pem,
-        ready_sign;
+        ready_sign, have_local, save_cert;
 
     keycoder = new Curve.Keycoder();
     is_ready_sign = function() {
@@ -112,6 +112,43 @@ var Keyholder = function(cb) {
 
         return ret;
     };
+    have_local = function() {
+        var store = window.localStorage;
+        var ret = [];
+        var keys;
+        var i;
+        var idx;
+
+        if(store === undefined) {
+            return ret;
+        }
+
+        keys = Object.keys(store);
+        for(i=0; i<keys.length; i++) {
+            idx = keys[i];
+            if(idx.indexOf('cert-') == 0) {
+                ret.push({
+                    "type": "cert",
+                    "data": store[idx],
+                    "key": idx,
+                })
+            }
+        }
+
+        return ret;
+    };
+
+    save_cert = function() {
+        var data = ob.get_pem({cert: true});
+        var serial = ob.cert.subject.serialNumber;
+
+        var store = window.localStorage;
+        if(store === undefined) {
+            return;
+        }
+
+        store['cert-' + serial] = data;
+    };
 
     ob = {
         have: have,
@@ -120,6 +157,8 @@ var Keyholder = function(cb) {
         get_curve: get_curve,
         is_ready_sign: is_ready_sign,
         cert_key_match: cert_key_match,
+        have_local: have_local,
+        save_cert: save_cert,
         key_info: {
         }
     };

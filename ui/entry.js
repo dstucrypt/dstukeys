@@ -5,9 +5,11 @@ var Curve = require('jkurwa'), priv=null,
     docview = require('./document.js'),
     identview = require('./identity.js'),
     Keyholder = require('./keyholder.js'),
+    Stored = require("./stored.js").Stored,
     keys,
     doc,
     ident,
+    stored,
     vm;
 
 var decode_import = function(indata, password) {
@@ -59,6 +61,7 @@ function feedback_cb(evt) {
     if(evt.cert === true) {
         ident.set_ident(keys.cert.subject, keys.cert.extension, keys.cert.pubkey);
         ident.visible(true);
+        keys.save_cert();
         vm.dnd_text("Теперь бросайте ключ");
     }
 
@@ -109,6 +112,10 @@ function file_dropped(u8) {
     keys.have({key: u8})
 }
 
+function file_selected(data) {
+    keys.have({key: data.data});
+}
+
 function setup() {
     keys = new Keyholder({need: need_cb, feedback: feedback_cb});
     vm = new view.Main({
@@ -119,13 +126,17 @@ function setup() {
     });
     doc = new docview.Document({sign_text: sign_cb});
     ident = new identview.Ident();
+    stored = new Stored({select: file_selected});
     dnd.setup(file_dropped);
     ko.applyBindings(vm, document.getElementById("ui"));
     ko.applyBindings(doc, document.getElementById("document"));
     ko.applyBindings(ident, document.getElementById("identity"));
+    ko.applyBindings(stored, document.getElementById("stored"));
 
     vm.dnd_text("Файлы бросать сюда");
     vm.visible(true);
+
+    stored.feed(keys.have_local());
 }
 
 module.exports.setup = setup;
