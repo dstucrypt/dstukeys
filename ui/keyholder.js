@@ -3,10 +3,13 @@ var Curve = require('jkurwa'),
     dstu = require('./dstu.js');
 
 var Keyholder = function(cb) {
-    var ob, keycoder, have, signer, pem,
-        ready_sign, have_local, save_cert;
+    var ob, keycoder, certs,
+        have, signer, pem,
+        ready_sign, have_local, save_cert,
+        pub_compressed, cert_lookup;
 
     keycoder = new Curve.Keycoder();
+    certs = {};
     is_ready_sign = function() {
         return (
                 (ob.key !== undefined) &&
@@ -14,14 +17,21 @@ var Keyholder = function(cb) {
                 ob.cert_key_match(ob.key, ob.cert)
         )
     };
+    pub_compressed = function() {
+        var key_curve = ob.get_curve();
+        var key_priv = Curve.Priv(key_curve, ob.key.param_d);
+        var key_pub = key_priv.pub();
+        var point_cmp = key_pub.point.compress();
+
+        return point_cmp.toString(16);
+    };
     cert_key_match = function(key, cert) {
         var key_curve = ob.get_curve();
         var key_priv = Curve.Priv(key_curve, ob.key.param_d);
         var key_pub = key_priv.pub();
+        var key_pub_compressed = key_pub.point.compress();
 
-        var cert_pub_point = key_curve.point(cert.pubkey);
-
-        return key_pub.point.equals(cert_pub_point);
+        return cert.pubkey.equals(key_pub_compressed);
     };
     have_key = function(data) {
         data = keycoder.maybe_pem(data);
@@ -41,7 +51,11 @@ var Keyholder = function(cb) {
             ob.key = parsed;
             cb.feedback({key: true});
             if(ob.cert === undefined) {
-                cb.need({cert: true});
+                if(ob.cert_lookup(ob.pub_compressed())) {
+                    cb.feedback({cert: true});
+                } else {
+                    cb.need({cert: true});
+                }
             }
             break;
         case 'IIT':
@@ -59,6 +73,16 @@ var Keyholder = function(cb) {
             console.log("have something unknown");
         }
 
+    };
+    cert_lookup = function(pub_point) {
+        var cert = certs[pub_point];
+        if(cert === undefined) {
+            return false;
+        }
+        ob.cert = cert.parsed;
+        ob.raw_cert = cert.raw;
+
+        return true;
     };
     have = function (data) {
         if (data.key !== undefined) {
@@ -145,6 +169,10 @@ var Keyholder = function(cb) {
                 } catch(e) {
                     continue;
                 }
+                certs[cert.pubkey.toString(16)] = {
+                    parsed: cert,
+                    raw: der,
+                }
                 ret.push({
                     "type": "cert",
                     "raw": data,
@@ -176,6 +204,8 @@ var Keyholder = function(cb) {
         get_curve: get_curve,
         is_ready_sign: is_ready_sign,
         cert_key_match: cert_key_match,
+        pub_compressed: pub_compressed,
+        cert_lookup: cert_lookup,
         have_local: have_local,
         save_cert: save_cert,
         key_info: {
