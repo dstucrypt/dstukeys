@@ -39,17 +39,21 @@ var StoredEl = function(evt, data) {
 
 var Stored = function(evt) {
     var ob;
-    var items = ko.observableArray([]);
+    var items = ko.observableArray();
     var feed = function(data) {
         var i, ob;
         for(i=0; ob=data[i]; i++) {
             items.push(new StoredEl(evt, ob));
         }
     };
+    var visible = ko.computed(function() {
+        return items().length > 0;
+    }, this);
 
     ob = {
         feed: feed,
         items: items,
+        visible: visible,
     };
 
     return ob;
