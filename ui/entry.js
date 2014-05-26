@@ -86,6 +86,7 @@ function pem_cb() {
 }
 
 function to_storage() {
+    keys.save_key();
 }
 
 function sign_box() {

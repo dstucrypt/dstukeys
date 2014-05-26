@@ -6,6 +6,7 @@ var Keyholder = function(cb) {
     var ob, keycoder, certs,
         have, signer, pem,
         ready_sign, have_local, save_cert,
+        save_key,
         pub_compressed, cert_lookup;
 
     keycoder = new Curve.Keycoder();
@@ -17,8 +18,8 @@ var Keyholder = function(cb) {
                 ob.cert_key_match(ob.key, ob.cert)
         )
     };
-    pub_compressed = function() {
-        var key_curve = ob.get_curve();
+    pub_compressed = function(p) {
+        var key_curve = ob.get_curve(p);
         var key_priv = Curve.Priv(key_curve, ob.key.param_d);
         var key_pub = key_priv.pub();
         var point_cmp = key_pub.point.compress();
@@ -26,10 +27,10 @@ var Keyholder = function(cb) {
         return point_cmp.toString(16);
     };
     cert_key_match = function(key, cert) {
-        var key_curve = ob.get_curve();
+        var key_curve = ob.get_curve(key);
         var key_priv = Curve.Priv(key_curve, ob.key.param_d);
         var key_pub = key_priv.pub();
-        var key_pub_compressed = key_pub.point.compress();
+        var key_pub_compressed = key_pub.point.compress(key);
 
         return cert.pubkey.equals(key_pub_compressed);
     };
@@ -51,7 +52,7 @@ var Keyholder = function(cb) {
             ob.key = parsed;
             cb.feedback({key: true});
             if(ob.cert === undefined) {
-                if(ob.cert_lookup(ob.pub_compressed())) {
+                if(ob.cert_lookup(ob.pub_compressed(ob.key))) {
                     cb.feedback({cert: true});
                 } else {
                     cb.need({cert: true});
@@ -60,6 +61,7 @@ var Keyholder = function(cb) {
             break;
         case 'IIT':
         case 'PBES2':
+            ob.raw_encrypted_key = data;
             ob.encrypted_key = parsed;
             cb.feedback({crypted_key: true})
             cb.need({password: true});
@@ -79,8 +81,8 @@ var Keyholder = function(cb) {
         if(cert === undefined) {
             return false;
         }
-        ob.cert = cert.parsed;
-        ob.raw_cert = cert.raw;
+        ob.cert = cert.cert;
+        ob.raw_cert = cert.raw_cert;
 
         return true;
     };
@@ -104,8 +106,7 @@ var Keyholder = function(cb) {
             }
         }
     };
-    get_curve = function() {
-        var p = ob.key;
+    get_curve = function(p) {
 
         return curve = new Curve({
             a: p.curve.a,
@@ -119,7 +120,7 @@ var Keyholder = function(cb) {
     };
     signer = function() {
         var p = ob.key;
-        var curve = ob.get_curve();
+        var curve = ob.get_curve(p);
 
         return new Curve.Priv(curve, p.param_d);
     };
@@ -130,7 +131,7 @@ var Keyholder = function(cb) {
         }
 
         if(what.key === true) {
-            ret = keycoder.to_pem(b64_encode(ob.raw_key, 42));
+            ret = keycoder.to_pem(b64_encode(ob.raw_encrypted_key, 42));
             ret += '\n';
         }
 
@@ -150,6 +151,8 @@ var Keyholder = function(cb) {
         var data;
         var der;
         var cert;
+        var key;
+        var compressed;
 
         if(store === undefined) {
             return ret;
@@ -159,7 +162,7 @@ var Keyholder = function(cb) {
         for(i=0; i<keys.length; i++) {
             idx = keys[i];
             data = store[idx];
-            if(idx.indexOf('cert-') == 0) {
+            if(idx.indexOf('cert-') === 0) {
                 try {
                     der = keycoder.maybe_pem(data);
                     cert = keycoder.parse(der);
@@ -170,16 +173,43 @@ var Keyholder = function(cb) {
                     continue;
                 }
                 certs[cert.pubkey.toString(16)] = {
-                    parsed: cert,
-                    raw: der,
+                    cert: cert,
+                    raw_cert: der,
+                    idx: idx,
+                    have_key: false,
                 }
-                ret.push({
-                    "type": "cert",
-                    "raw": data,
-                    "key": idx,
-                    "cert": cert,
-                })
             }
+        }
+        keys = Object.keys(store);
+        for(i=0; i<keys.length; i++) {
+            idx = keys[i];
+            data = store[idx];
+            if(idx.indexOf('key-') === 0) {
+                try {
+                    der = keycoder.maybe_pem(data);
+                    key = keycoder.parse(der);
+                    switch(key.format) {
+                    case 'IIT':
+                    case 'PBES2':
+                        break;
+                    default:
+                        throw new Error("expected compressed key");
+                    }
+                } catch(e) {
+                    continue;
+                }
+
+                compressed = idx.substr(4); // string after key- is compressed pub
+                if(certs[compressed] !== undefined) {
+                    certs[compressed]['have_key'] = true;
+                    certs[compressed]['raw_key'] = der;
+                }
+            }
+        }
+
+        keys = Object.keys(certs);
+        for(i=0; i<keys.length; i++) {
+            ret.push(certs[keys[i]]);
         }
 
         return ret;
@@ -197,6 +227,18 @@ var Keyholder = function(cb) {
         store['cert-' + serial] = data;
     };
 
+    save_key = function() {
+        var data = ob.get_pem({key: true});
+        var compressed = ob.pub_compressed(ob.key);
+
+        var store = window.localStorage;
+        if(store === undefined) {
+            return;
+        }
+
+        store['key-' + compressed] = data;
+    };
+
     ob = {
         have: have,
         get_pem: pem,
@@ -208,6 +250,7 @@ var Keyholder = function(cb) {
         cert_lookup: cert_lookup,
         have_local: have_local,
         save_cert: save_cert,
+        save_key: save_key,
         key_info: {
         }
     };
