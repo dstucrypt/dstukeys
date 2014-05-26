@@ -23,31 +23,6 @@ var numberHex = function(numbrs, line) {
     }
     return hex.join("");
 }
-var B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-var numberB64 = function(numbrs, line) {
-    var ret = [], b1, b2, b3, e1, e2, e3, e4, i=0;
-    while(i < numbrs.length) {
-
-        b1 = numbrs[i++];
-        b2 = numbrs[i++];
-        b3 = numbrs[i++];
-
-        e1 = b1 >> 2;
-        e2 = ((b1 & 3) << 4) | (b2 >> 4);
-        e3 = ((b2 & 15) << 2) | (b3 >> 6);
-        e4 = b3 & 63;
-
-        ret.push(B64.charAt(e1));
-        ret.push(B64.charAt(e2));
-        ret.push(B64.charAt(e3));
-        ret.push(B64.charAt(e4));
-
-        if( (i > 0) && (line !== undefined) && ((i%line) == 0)) {
-            ret.push('\n');
-        }
-    }
-    return ret.join("");
-}
 
 var asnbuf = function(asn_l) {
     var buf_len = 0, buf, start, end, off = 0,
@@ -75,4 +50,3 @@ var asnbuf = function(asn_l) {
 
 exports.asnbuf = asnbuf
 exports.read_buf = read_buf
-exports.numberB64 = numberB64

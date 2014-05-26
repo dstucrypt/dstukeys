@@ -113,7 +113,7 @@ function file_dropped(u8) {
 }
 
 function file_selected(data) {
-    keys.have({key: data.data});
+    keys.have({key: data});
 }
 
 function setup() {

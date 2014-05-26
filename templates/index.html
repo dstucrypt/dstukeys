@@ -57,10 +57,15 @@
         ( <span data-bind="text: title" ></span> ).
     </div>
 
-    <div id="stored">
-        <div data-bind="foreach: items">
-            <span data-bind="text: type, click: select"></span>
+    <div id="stored" style="margin: 10px 20px 0 30%; border: 1px solid gray">
+    <h3>Сохраненные сертификаты</h3>
+    <div data-bind="foreach: items" >
+        <div>
+            <span data-bind="text: label(), click: select"></span>
+            <span data-bind="text: state()"></span>
+            <!-- <span data-bind="click: remove">REMOVE</span> -->
         </div>
+    </div>
     </div>
 
     <script>

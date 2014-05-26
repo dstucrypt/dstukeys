@@ -1,13 +1,38 @@
 var StoredEl = function(evt, data) {
     var ob;
     var type = ko.observable(data.type);
+    var selected = ko.observable(false);
+    var label = function() {
+        var subj = data.cert.subject;
+        var is = data.cert.issuer;
+        return subj.commonName + ' ' + subj.title + ", " + subj.serialNumber + ' ( ' + is.organizationName + ' )';
+    };
     var select = function() {
-        evt.select(data)
+        selected(true);
+        evt.select(data.raw)
+    };
+    var remove = function() {
+        var store = window.localStorage;
+        if(store === undefined) {
+            return;
+        }
+
+        store.removeItem(data.key);
+    };
+    var state = function() {
+        if(selected()) {
+            return '[X]';
+        }
+
+        return '';
     };
 
     ob = {
         "type": type,
+        "label": label,
         "select": select,
+        "state": state,
+        "remove": remove,
     };
     return ob;
 };

@@ -1,5 +1,5 @@
 var Curve = require('jkurwa'),
-    util = require('./util.js'),
+    b64_encode = Curve.b64_encode,
     dstu = require('./dstu.js');
 
 var Keyholder = function(cb) {
@@ -24,6 +24,8 @@ var Keyholder = function(cb) {
         return key_pub.point.equals(cert_pub_point);
     };
     have_key = function(data) {
+        data = keycoder.maybe_pem(data);
+
         try {
             var parsed = keycoder.parse(data);
         } catch(e) {
@@ -38,6 +40,9 @@ var Keyholder = function(cb) {
             ob.raw_key = data;
             ob.key = parsed;
             cb.feedback({key: true});
+            if(ob.cert === undefined) {
+                cb.need({cert: true});
+            }
             break;
         case 'IIT':
         case 'PBES2':
@@ -95,18 +100,18 @@ var Keyholder = function(cb) {
         return new Curve.Priv(curve, p.param_d);
     };
     pem = function(what) {
-        var ret;
+        var ret = '';
         if(what === undefined) {
             what = {key: true};
         }
 
         if(what.key === true) {
-            ret = keycoder.to_pem(util.numberB64(ob.raw_key, 42));
+            ret = keycoder.to_pem(b64_encode(ob.raw_key, 42));
             ret += '\n';
         }
 
         if(what.cert === true) {
-            ret = keycoder.to_pem(util.numberB64(ob.raw_cert, 42), 'CERTIFICATE');
+            ret = keycoder.to_pem(b64_encode(ob.raw_cert, 42), 'CERTIFICATE');
             ret += '\n';
         }
 
@@ -118,6 +123,9 @@ var Keyholder = function(cb) {
         var keys;
         var i;
         var idx;
+        var data;
+        var der;
+        var cert;
 
         if(store === undefined) {
             return ret;
@@ -126,11 +134,22 @@ var Keyholder = function(cb) {
         keys = Object.keys(store);
         for(i=0; i<keys.length; i++) {
             idx = keys[i];
+            data = store[idx];
             if(idx.indexOf('cert-') == 0) {
+                try {
+                    der = keycoder.maybe_pem(data);
+                    cert = keycoder.parse(der);
+                    if(cert.format !== 'x509') {
+                        throw new Error("expected cert");
+                    }
+                } catch(e) {
+                    continue;
+                }
                 ret.push({
                     "type": "cert",
-                    "data": store[idx],
+                    "raw": data,
                     "key": idx,
+                    "cert": cert,
                 })
             }
         }
