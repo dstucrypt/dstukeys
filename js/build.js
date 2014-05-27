@@ -47,7 +47,7 @@ return this};d.inverse=function(){return this.power(this.modulus.sub(2))};c.from
 sjcl.bn.prime={p127:M(127,[[0,-1]]),p25519:M(255,[[0,-19]]),p192k:M(192,[[32,-1],[12,-1],[8,-1],[7,-1],[6,-1],[3,-1],[0,-1]]),p224k:M(224,[[32,-1],[12,-1],[11,-1],[9,-1],[7,-1],[4,-1],[1,-1],[0,-1]]),p256k:M(0x100,[[32,-1],[9,-1],[8,-1],[7,-1],[6,-1],[4,-1],[0,-1]]),p192:M(192,[[0,-1],[64,-1]]),p224:M(224,[[0,1],[96,-1]]),p256:M(0x100,[[0,-1],[96,1],[192,1],[224,-1]]),p384:M(384,[[0,-1],[32,1],[96,-1],[128,-1]]),p521:M(521,[[0,-1]])};
 sjcl.bn.random=function(a,b){"object"!==typeof a&&(a=new sjcl.bn(a));for(var c,d,e=a.limbs.length,f=a.limbs[e-1]+1,g=new sjcl.bn;;){do c=sjcl.random.randomWords(e,b),0>c[e-1]&&(c[e-1]+=0x100000000);while(Math.floor(c[e-1]/f)===Math.floor(0x100000000/f));c[e-1]%=f;for(d=0;d<e-1;d++)c[d]&=a.radixMask;g.limbs=c;if(!g.greaterEquals(a))return g}};
 
-},{"crypto":44}],"RxwtOC":[function(require,module,exports){
+},{"crypto":48}],"RxwtOC":[function(require,module,exports){
 var asn1 = exports;
 
 // Optional bignum
@@ -110,7 +110,7 @@ Entity.prototype.encode = function encode(data, enc, /* internal */ reporter) {
   return this.encoders[enc].encode(data, reporter);
 };
 
-},{"../asn1":"RxwtOC","util":52,"vm":53}],6:[function(require,module,exports){
+},{"../asn1":"RxwtOC","util":56,"vm":57}],6:[function(require,module,exports){
 var assert = require('assert');
 var util = require('util');
 var Reporter = require('../base').Reporter;
@@ -228,7 +228,7 @@ EncoderBuffer.prototype.join = function join(out, offset) {
   return out;
 };
 
-},{"../base":7,"assert":36,"buffer":"VTj7jY","util":52}],7:[function(require,module,exports){
+},{"../base":7,"assert":40,"buffer":"VTj7jY","util":56}],7:[function(require,module,exports){
 var base = exports;
 
 base.Reporter = require('./reporter').Reporter;
@@ -753,7 +753,7 @@ Node.prototype._encodePrimitive = function encodePrimitive(tag, data) {
     throw new Error('Unsupported tag: ' + tag);
 };
 
-},{"../base":7,"assert":36}],9:[function(require,module,exports){
+},{"../base":7,"assert":40}],9:[function(require,module,exports){
 var util = require('util');
 
 function Reporter(options) {
@@ -844,7 +844,7 @@ ReporterError.prototype.rethrow = function rethrow(msg) {
   return this;
 };
 
-},{"util":52}],10:[function(require,module,exports){
+},{"util":56}],10:[function(require,module,exports){
 var constants = require('../constants');
 
 exports.tagClass = {
@@ -1210,7 +1210,7 @@ function derDecodeLen(buf, primitive, fail) {
   return len;
 }
 
-},{"../../asn1":"RxwtOC","util":52}],13:[function(require,module,exports){
+},{"../../asn1":"RxwtOC","util":56}],13:[function(require,module,exports){
 var decoders = exports;
 
 decoders.der = require('./der');
@@ -1449,7 +1449,7 @@ function encodeTag(tag, primitive, cls, reporter) {
   return res;
 }
 
-},{"../../asn1":"RxwtOC","buffer":"VTj7jY","util":52}],15:[function(require,module,exports){
+},{"../../asn1":"RxwtOC","buffer":"VTj7jY","util":56}],15:[function(require,module,exports){
 var encoders = exports;
 
 encoders.der = require('./der');
@@ -1891,7 +1891,153 @@ Object.keys(BigNum.prototype).forEach(function (name) {
 });
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":"VTj7jY"}],17:[function(require,module,exports){
+},{"buffer":"VTj7jY"}],"4U1mNF":[function(require,module,exports){
+/*!
+ * Cookies.js - 0.4.0
+ *
+ * Copyright (c) 2014, Scott Hamper
+ * Licensed under the MIT license,
+ * http://www.opensource.org/licenses/MIT
+ */
+(function (undefined) {
+    'use strict';
+
+    var Cookies = function (key, value, options) {
+        return arguments.length === 1 ?
+            Cookies.get(key) : Cookies.set(key, value, options);
+    };
+
+    // Allows for setter injection in unit tests
+    Cookies._document = document;
+    Cookies._navigator = navigator;
+
+    Cookies.defaults = {
+        path: '/'
+    };
+
+    Cookies.get = function (key) {
+        if (Cookies._cachedDocumentCookie !== Cookies._document.cookie) {
+            Cookies._renewCache();
+        }
+
+        return Cookies._cache[key];
+    };
+
+    Cookies.set = function (key, value, options) {
+        options = Cookies._getExtendedOptions(options);
+        options.expires = Cookies._getExpiresDate(value === undefined ? -1 : options.expires);
+
+        Cookies._document.cookie = Cookies._generateCookieString(key, value, options);
+
+        return Cookies;
+    };
+
+    Cookies.expire = function (key, options) {
+        return Cookies.set(key, undefined, options);
+    };
+
+    Cookies._getExtendedOptions = function (options) {
+        return {
+            path: options && options.path || Cookies.defaults.path,
+            domain: options && options.domain || Cookies.defaults.domain,
+            expires: options && options.expires || Cookies.defaults.expires,
+            secure: options && options.secure !== undefined ?  options.secure : Cookies.defaults.secure
+        };
+    };
+
+    Cookies._isValidDate = function (date) {
+        return Object.prototype.toString.call(date) === '[object Date]' && !isNaN(date.getTime());
+    };
+
+    Cookies._getExpiresDate = function (expires, now) {
+        now = now || new Date();
+        switch (typeof expires) {
+            case 'number': expires = new Date(now.getTime() + expires * 1000); break;
+            case 'string': expires = new Date(expires); break;
+        }
+
+        if (expires && !Cookies._isValidDate(expires)) {
+            throw new Error('`expires` parameter cannot be converted to a valid Date instance');
+        }
+
+        return expires;
+    };
+
+    Cookies._generateCookieString = function (key, value, options) {
+        key = key.replace(/[^#$&+\^`|]/g, encodeURIComponent);
+        key = key.replace(/\(/g, '%28').replace(/\)/g, '%29');
+        value = (value + '').replace(/[^!#$&-+\--:<-\[\]-~]/g, encodeURIComponent);
+        options = options || {};
+
+        var cookieString = key + '=' + value;
+        cookieString += options.path ? ';path=' + options.path : '';
+        cookieString += options.domain ? ';domain=' + options.domain : '';
+        cookieString += options.expires ? ';expires=' + options.expires.toUTCString() : '';
+        cookieString += options.secure ? ';secure' : '';
+
+        return cookieString;
+    };
+
+    Cookies._getCookieObjectFromString = function (documentCookie) {
+        var cookieObject = {};
+        var cookiesArray = documentCookie ? documentCookie.split('; ') : [];
+
+        for (var i = 0; i < cookiesArray.length; i++) {
+            var cookieKvp = Cookies._getKeyValuePairFromCookieString(cookiesArray[i]);
+
+            if (cookieObject[cookieKvp.key] === undefined) {
+                cookieObject[cookieKvp.key] = cookieKvp.value;
+            }
+        }
+
+        return cookieObject;
+    };
+
+    Cookies._getKeyValuePairFromCookieString = function (cookieString) {
+        // "=" is a valid character in a cookie value according to RFC6265, so cannot `split('=')`
+        var separatorIndex = cookieString.indexOf('=');
+
+        // IE omits the "=" when the cookie value is an empty string
+        separatorIndex = separatorIndex < 0 ? cookieString.length : separatorIndex;
+
+        return {
+            key: decodeURIComponent(cookieString.substr(0, separatorIndex)),
+            value: decodeURIComponent(cookieString.substr(separatorIndex + 1))
+        };
+    };
+
+    Cookies._renewCache = function () {
+        Cookies._cache = Cookies._getCookieObjectFromString(Cookies._document.cookie);
+        Cookies._cachedDocumentCookie = Cookies._document.cookie;
+    };
+
+    Cookies._areEnabled = function () {
+        var testKey = 'cookies.js';
+        var areEnabled = Cookies.set(testKey, 1).get(testKey) === '1';
+        Cookies.expire(testKey);
+        return areEnabled;
+    };
+
+    Cookies.enabled = Cookies._areEnabled();
+
+    // AMD support
+    if (typeof define === 'function' && define.amd) {
+        define(function () { return Cookies; });
+    // CommonJS and Node.js module support.
+    } else if (typeof exports !== 'undefined') {
+        // Support Node.js specific `module.exports` (which can be a function)
+        if (typeof module !== 'undefined' && module.exports) {
+            exports = module.exports = Cookies;
+        }
+        // But always support CommonJS module 1.1.1 spec (`exports` cannot be a function)
+        exports.Cookies = Cookies;
+    } else {
+        window.Cookies = Cookies;
+    }
+})();
+},{}],"cookies-js":[function(require,module,exports){
+module.exports=require('4U1mNF');
+},{}],19:[function(require,module,exports){
 // Copyright (c) 2005  Tom Wu
 // All Rights Reserved.
 // See "LICENSE" for details.
@@ -3109,7 +3255,7 @@ BigInteger.prototype.square = bnSquare;
 // static BigInteger valueOf(long val)
 module.exports = BigInteger
 
-},{}],18:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 var B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 var b64_encode = function(numbrs, line) {
     var ret = [], b1, b2, b3, e1, e2, e3, e4, i=0;
@@ -3747,7 +3893,7 @@ module.exports.Big = Big;
 module.exports.b64_decode = base64.b64_decode;
 module.exports.b64_encode = base64.b64_encode;
 
-},{"./3rtparty/jsbn.packed.js":17,"./base64.js":18,"./keycoder.js":21,"sjcl":"4NrMYi"}],21:[function(require,module,exports){
+},{"./3rtparty/jsbn.packed.js":19,"./base64.js":20,"./keycoder.js":23,"sjcl":"4NrMYi"}],23:[function(require,module,exports){
 var asn1 = require('asn1.js'),
     Big = require('./3rtparty/jsbn.packed.js'),
     rfc3280 = require('./rfc3280.js'),
@@ -4076,7 +4222,7 @@ var Keycoder = function() {
 
 module.exports = Keycoder
 
-},{"./3rtparty/jsbn.packed.js":17,"./base64.js":18,"./rfc3280.js":22,"asn1.js":"RxwtOC","buffer":"VTj7jY"}],22:[function(require,module,exports){
+},{"./3rtparty/jsbn.packed.js":19,"./base64.js":20,"./rfc3280.js":24,"asn1.js":"RxwtOC","buffer":"VTj7jY"}],24:[function(require,module,exports){
 var asn1 = require('asn1.js');
 
 var CRLReason = asn1.define('CRLReason', function() {
@@ -4324,7 +4470,7 @@ var AttributeValue = asn1.define('AttributeValue', function() {
 });
 exports.AttributeValue = AttributeValue;
 
-},{"asn1.js":"RxwtOC"}],23:[function(require,module,exports){
+},{"asn1.js":"RxwtOC"}],25:[function(require,module,exports){
 var CertMain = function() {
     var ob;
 
@@ -4405,9 +4551,9 @@ var setup = function() {
 
 module.exports.setup = setup;
 
-},{"./cert.js":23,"./dnd.js":26,"./identity.js":31,"./keyholder.js":32}],"certui":[function(require,module,exports){
+},{"./cert.js":25,"./dnd.js":28,"./identity.js":33,"./keyholder.js":34}],"certui":[function(require,module,exports){
 module.exports=require('JxKr0o');
-},{}],26:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 /*jslint plusplus: true */
 
 "use strict";
@@ -4452,7 +4598,7 @@ function setup(cb) {
 
 exports.setup = setup;
 
-},{}],27:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 
 var ia2hex = function(val) {
     var ret = '', i, c;
@@ -4496,7 +4642,7 @@ var Document = function(cb) {
 
 module.exports.Document = Document;
 
-},{}],28:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 /*
  *
  * Interface code for emscripten-compiled gost89 (dstu200) code
@@ -4576,11 +4722,33 @@ var compute_hash = function(contents) {
     throw new Error("Document hasher failed");
 }
 
-module.exports.decode_data = decode_data
+var decode_data_wrap = function(data, password, cb) {
+    var worker;
+    try {
+        worker = new Worker(DSTU_WORKER_URL);
+    } catch (e) {
+        return cb(decode_data(data, password));
+    }
+    worker.onmessage = function(e) {
+        cb(e.data.ret);
+    }
+
+    worker.postMessage({ev: 'dstu', data: data, password: password});
+};
+
+var onmessage = function(e) {
+    var msg = e.data;
+    return decode_data(msg.data, msg.password);
+};
+
+module.exports.decode_data = decode_data_wrap;
 module.exports.convert_password = convert_password;
 module.exports.compute_hash = compute_hash
+module.exports.onmessage = onmessage;
 
-},{"./util.js":35}],"0YlI+X":[function(require,module,exports){
+},{"./util.js":39}],"ui":[function(require,module,exports){
+module.exports=require('0YlI+X');
+},{}],"0YlI+X":[function(require,module,exports){
 var Curve = require('jkurwa'), priv=null,
     dnd = require('./dnd.js'),
     view = require('./ui.js'),
@@ -4589,6 +4757,9 @@ var Curve = require('jkurwa'), priv=null,
     identview = require('./identity.js'),
     Keyholder = require('./keyholder.js'),
     Stored = require("./stored.js").Stored,
+    locale = require("./locale.js"),
+    _ = locale.gettext,
+    cookies = require('cookies-js'),
     keys,
     doc,
     ident,
@@ -4636,7 +4807,7 @@ function feedback_cb(evt) {
         vm.pw_visible(false);
     }
     if(evt.key === true) {
-        vm.dnd_text("Теперь бросайте сертификат");
+        vm.dnd_state(1);
     }
     if(evt.key === false) {
         vm.set_error("You dropped some file, but it's not private key (or we maybe we can't read it)");
@@ -4645,7 +4816,7 @@ function feedback_cb(evt) {
         ident.set_ident(keys.cert.subject, keys.cert.extension, keys.cert.pubkey);
         ident.visible(true);
         keys.save_cert();
-        vm.dnd_text("Теперь бросайте ключ");
+        vm.dnd_state(0);
     }
 
     if((evt.key === true) || (evt.cert === true)) {
@@ -4700,7 +4871,24 @@ function file_selected(data) {
     keys.have({key: data});
 }
 
+function read_locale() {
+    var code;
+    code = cookies.get('dstu_ui_locale');
+    if((code === undefined) || (code === null) || (code.length !== 2)) {
+        code = 'ua';
+        cookies.set('dstu_ui_locale', code);
+    }
+
+    return code;
+}
+
+var change_locale = function(code) {
+    cookies.set('dstu_ui_locale', code);
+    locale.set_current(read_locale());
+};
+
 function setup() {
+    locale.set_current(read_locale());
     keys = new Keyholder({need: need_cb, feedback: feedback_cb});
     vm = new view.Main({
         password: password_cb,
@@ -4717,18 +4905,15 @@ function setup() {
     ko.applyBindings(ident, document.getElementById("identity"));
     ko.applyBindings(stored, document.getElementById("stored"));
 
-    vm.dnd_text("Файлы бросать сюда");
     vm.visible(true);
 
     stored.feed(keys.have_local());
 }
 
 module.exports.setup = setup;
-exports.setup = setup;
+module.exports.locale = change_locale;
 
-},{"./dnd.js":26,"./document.js":27,"./dstu.js":28,"./identity.js":31,"./keyholder.js":32,"./stored.js":33,"./ui.js":34,"jkurwa":"B9c0rZ"}],"ui":[function(require,module,exports){
-module.exports=require('0YlI+X');
-},{}],31:[function(require,module,exports){
+},{"./dnd.js":28,"./document.js":29,"./dstu.js":30,"./identity.js":33,"./keyholder.js":34,"./locale.js":36,"./stored.js":37,"./ui.js":38,"cookies-js":"4U1mNF","jkurwa":"B9c0rZ"}],33:[function(require,module,exports){
 var Ident = function() {
     var ob;
 
@@ -4809,7 +4994,7 @@ var Ident = function() {
 
 module.exports.Ident = Ident;
 
-},{}],32:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 var Curve = require('jkurwa'),
     b64_encode = Curve.b64_encode,
     dstu = require('./dstu.js');
@@ -4845,6 +5030,18 @@ var Keyholder = function(cb) {
         var key_pub_compressed = key_pub.point.compress(key);
 
         return cert.pubkey.equals(key_pub_compressed);
+    };
+    have_password = function(decoded) {
+        if ((decoded === undefined) || 
+            (keycoder.is_valid(decoded) !== true)) {
+            cb.feedback({password: false});
+            cb.need({password: true});
+            return;
+        }
+
+        cb.feedback({password: true});
+        ob.raw_key = decoded;
+        have({key: decoded})
     };
     have_key = function(data) {
         data = keycoder.maybe_pem(data);
@@ -4902,20 +5099,8 @@ var Keyholder = function(cb) {
         if (data.key !== undefined) {
             have_key(data.key);
         }
-        if (data.password !== undefined) {
-            if (ob.encrypted_key !== undefined) {
-                var decoded = dstu.decode_data(ob.encrypted_key, data.password);
-                if ((decoded === undefined) || 
-                    (keycoder.is_valid(decoded) !== true)) {
-                    cb.feedback({password: false});
-                    cb.need({password: true});
-                    return;
-                }
-
-                cb.feedback({password: true});
-                ob.raw_key = decoded;
-                have({key: decoded})
-            }
+        if ((data.password !== undefined) && (ob.encrypted_key !== undefined)) {
+            dstu.decode_data(ob.encrypted_key, data.password, have_password);
         }
     };
     get_curve = function(p) {
@@ -5071,7 +5256,69 @@ var Keyholder = function(cb) {
 
 module.exports = Keyholder;
 
-},{"./dstu.js":28,"jkurwa":"B9c0rZ"}],33:[function(require,module,exports){
+},{"./dstu.js":30,"jkurwa":"B9c0rZ"}],35:[function(require,module,exports){
+var locale = {};
+
+locale.ua = {
+    dnd_0: "Перетягніть файл ключа сюди",
+    dnd_1: "Теперь перетягніть файл сертифікату",
+    intro_1: ("Щоб накласти на документ електронний підпис, перетягніть на сторінку файл ключа, який вам видали у Центрі Сертифікації. Зазвичай, чей файл має ім\`я \"key_6.dat\", та є прихованим на флешці. Після цього, ви можете запам`ятати ключ у локальному сховищі браузера."),
+
+    add_sign: "Накласти підпис на документ",
+    to_store: "Зберегти у свовище",
+};
+
+locale.ru = {
+    dnd_0: "Перетащите файл ключа",
+    dnd_1: "Теперь перетащите файл сертификата",
+    intro_1: ("Чтобы наложить электронную подпись на документ, перетащите на страницу файл секретного ключа, который вам выдали в Центре Сертификации. Обычно этот файл называется \"key_6.dat\" и находится на флешке в скрытом виде"),
+
+    add_sign: "Наложить подпись на документ",
+    to_store: "Сохранить в хранилище",
+};
+
+module.exports = locale;
+
+},{}],36:[function(require,module,exports){
+var locale = require('./l10n.js'),
+    locale_code = ko.observable(),
+    label,
+    current;
+
+var set_current = function(code) {
+    if(locale[code] === undefined) {
+        throw new Error("Locale not found");
+    }
+
+    current = locale[code];
+    locale_code(code);
+    locale_code.notifySubscribers();
+}
+
+var gettext = function(msgid) {
+    locale_code();
+    return current[msgid];
+}
+
+var label = function(msgid, state_fn) {
+    return ko.computed(function() {
+        var _msgid;
+        if(state_fn !== undefined) {
+            _msgid = msgid + '_' + state_fn();
+        } else {
+            _msgid = msgid;
+        }
+
+        return gettext(_msgid);
+    }, this)
+}
+
+module.exports.gettext = gettext;
+module.exports._ = gettext;
+module.exports.set_current = set_current;
+module.exports.label = label;
+
+},{"./l10n.js":35}],37:[function(require,module,exports){
 var StoredEl = function(evt, data) {
     var ob;
     var selected = ko.observable(false);
@@ -5141,7 +5388,11 @@ var Stored = function(evt) {
 
 module.exports.Stored = Stored;
 
-},{}],34:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
+var locale = require('./locale.js'),
+    _label = locale.label,
+    _ = locale.gettext;
+
 var Main = function (cb) {
     var ob;
 
@@ -5157,7 +5408,7 @@ var Main = function (cb) {
     var error_visible = ko.observable(false);
     var error_text = ko.observable("");
     var visible = ko.observable(false);
-    var dnd_text = ko.observable("");
+    var dnd_state = ko.observable(0);
 
     var accept_pw = function() {
         var value = pw();
@@ -5213,6 +5464,8 @@ var Main = function (cb) {
         show_pem: show_pem,
         do_save: do_save,
         do_sign: do_sign,
+        label_sign: _label('add_sign'),
+        label_store: _label('to_store'),
         set_pem: set_pem,
         pem_text: pem_text,
         pem_visible: pem_visible,
@@ -5220,7 +5473,9 @@ var Main = function (cb) {
         error_text: error_text,
         error_visible: error_visible,
         visible: visible,
-        dnd_text: dnd_text,
+        dnd_state: dnd_state,
+        intro_1: _label('intro_1'),
+        dnd_text: _label('dnd', dnd_state),
     };
     return ob;
 }
@@ -5228,7 +5483,7 @@ var Main = function (cb) {
 exports.Main = Main;
 module.exports.Main = Main;
 
-},{}],35:[function(require,module,exports){
+},{"./locale.js":36}],39:[function(require,module,exports){
 var read_buf = function(ptr, sz) {
     var ret = [], x=0;
     for(var i = 0; i < sz; i++) {
@@ -5282,7 +5537,7 @@ var asnbuf = function(asn_l) {
 exports.asnbuf = asnbuf
 exports.read_buf = read_buf
 
-},{}],36:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -5644,14 +5899,14 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":38}],37:[function(require,module,exports){
+},{"util/":42}],41:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],38:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -6241,7 +6496,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("UPikzY"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":37,"UPikzY":50,"inherits":49}],"buffer":[function(require,module,exports){
+},{"./support/isBuffer":41,"UPikzY":54,"inherits":53}],"buffer":[function(require,module,exports){
 module.exports=require('VTj7jY');
 },{}],"VTj7jY":[function(require,module,exports){
 /*!
@@ -7393,7 +7648,7 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":41,"ieee754":42}],41:[function(require,module,exports){
+},{"base64-js":45,"ieee754":46}],45:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -7516,7 +7771,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	module.exports.fromByteArray = uint8ToBase64
 }())
 
-},{}],42:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -7602,7 +7857,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],43:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 var Buffer = require('buffer').Buffer;
 var intSize = 4;
 var zeroBuffer = new Buffer(intSize); zeroBuffer.fill(0);
@@ -7639,7 +7894,7 @@ function hash(buf, fn, hashSize, bigEndian) {
 
 module.exports = { hash: hash };
 
-},{"buffer":"VTj7jY"}],44:[function(require,module,exports){
+},{"buffer":"VTj7jY"}],48:[function(require,module,exports){
 var Buffer = require('buffer').Buffer
 var sha = require('./sha')
 var sha256 = require('./sha256')
@@ -7738,7 +7993,7 @@ each(['createCredentials'
   }
 })
 
-},{"./md5":45,"./rng":46,"./sha":47,"./sha256":48,"buffer":"VTj7jY"}],45:[function(require,module,exports){
+},{"./md5":49,"./rng":50,"./sha":51,"./sha256":52,"buffer":"VTj7jY"}],49:[function(require,module,exports){
 /*
  * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
  * Digest Algorithm, as defined in RFC 1321.
@@ -7903,7 +8158,7 @@ module.exports = function md5(buf) {
   return helpers.hash(buf, core_md5, 16);
 };
 
-},{"./helpers":43}],46:[function(require,module,exports){
+},{"./helpers":47}],50:[function(require,module,exports){
 // Original code adapted from Robert Kieffer.
 // details at https://github.com/broofa/node-uuid
 (function() {
@@ -7936,7 +8191,7 @@ module.exports = function md5(buf) {
 
 }())
 
-},{}],47:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
  * in FIPS PUB 180-1
@@ -8039,7 +8294,7 @@ module.exports = function sha1(buf) {
   return helpers.hash(buf, core_sha1, 20, true);
 };
 
-},{"./helpers":43}],48:[function(require,module,exports){
+},{"./helpers":47}],52:[function(require,module,exports){
 
 /**
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-256, as defined
@@ -8120,7 +8375,7 @@ module.exports = function sha256(buf) {
   return helpers.hash(buf, core_sha256, 32, true);
 };
 
-},{"./helpers":43}],49:[function(require,module,exports){
+},{"./helpers":47}],53:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -8145,7 +8400,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],50:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -8210,11 +8465,11 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],51:[function(require,module,exports){
-module.exports=require(37)
-},{}],52:[function(require,module,exports){
-module.exports=require(38)
-},{"./support/isBuffer":51,"UPikzY":50,"inherits":49}],53:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
+module.exports=require(41)
+},{}],56:[function(require,module,exports){
+module.exports=require(42)
+},{"./support/isBuffer":55,"UPikzY":54,"inherits":53}],57:[function(require,module,exports){
 var indexOf = require('indexof');
 
 var Object_keys = function (obj) {
@@ -8354,7 +8609,7 @@ exports.createContext = Script.createContext = function (context) {
     return copy;
 };
 
-},{"indexof":54}],54:[function(require,module,exports){
+},{"indexof":58}],58:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
