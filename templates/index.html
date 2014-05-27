@@ -1,12 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
 
+    <div id="langs" style="float: right; margin: 10px 5px">
+        <div data-bind="foreach: items">
+        <span data-bind="text: code, click: select"></span>
+        </div>
+    </div>
+
     <h1>Електронний цифровий підпис</h1>
 
     <div id="ui" data-bind="visible: visible" style="display: none">
-        <p>
-            Тут можно подписать любой документ цифровой подписью, соответствующей Державному Стандарту України. Физические лица, предприниматели и юридические лица могу получить такую подпись в АЦСК Миндоходов или купить у частных центров сертификации. Согласно законов Украины, такая подпись эквивалентна автографу на бумаге и может, и уже используется, для сдачи отчетов в налоговую, проведения банковских платежей, заключения договоров и так далее.
-        </p>
+        <p data-bind="text: intro_0"></p>
         <p data-bind="visible: dnd_visible, text: intro_1" ></p>
 
         <p data-bind="visible: error_visible">
@@ -14,11 +18,6 @@
         </p>
 
         <div id="drop_zone" data-bind="visible: dnd_visible, text: dnd_text" >Файл бросать сюда.</div>
-        <p data-bind="visible: pw_visible">
-            Файл ключа зашифрован. Введите пароль и нажмите кнопку
-            <input id='pw_in' data-bind="css: {field_error: pw_error}, visible: pw_visible, value: pw" type="password" />
-            <button id="pw_accept" type="button" data-bind="visible: pw_visible, click: accept_pw" >Расшифровать</button>
-        </p>
         <div id="key_info" data-bind="visible: key_info_visible">
             <span data-bind="text: key_info"></span>
         </div>
@@ -32,7 +31,7 @@
     </div>
 
     <div id="document" data-bind="visible: visible" style="display: none">
-            <h2>Введите текст документ в поле ниже</h2>
+            <h2>Введіть текст документ на підпис</h2>
             <textarea data-bind="document_text"></textarea>
 
             <p>
@@ -40,21 +39,16 @@
             </p>
 
             <p>
-                <button data-bind="click: do_sign">Подписать</button>
+                <button data-bind="click: do_sign">Накласти підпис</button>
             </p>
     </div>
 
     <div id="identity" data-bind="visible: visible" style="display: none">
-        <span data-bind="text: commonName" ></span>,
-        зарегистрирован в
-        <span data-bind="text: located()"></span>
-        и идентифицируем по налоговому номеру
-        <span data-bind="text: ipn" ></span>
-        ( <span data-bind="text: title" ></span> ).
+        <span data-bind="text: label"></span>
     </div>
 
     <div id="stored" style="margin: 10px 20px 0 30%; border: 1px solid gray" data-bind="visible: visible">
-    <h3>Сохраненные сертификаты</h3>
+    <h3 data-bind="text: avail_certs"></h3>
     <div data-bind="foreach: items" >
         <div>
             <span data-bind="text: label(), click: select"></span>
@@ -62,6 +56,15 @@
             <!-- <span data-bind="click: remove">REMOVE</span> -->
         </div>
     </div>
+    </div>
+
+    <div id="password" data-bind="visible: visible" style="display: none">
+        <div id="password_in">
+            <h2 data-bind="text: crypted_key_0"></h2>
+            <span data-bind="text: crypted_key_1"></span>
+            <input id='pw_in' data-bind="css: {field_error: error}, value: value, disable: busy" type="password" />
+            <button id="pw_accept" type="button" data-bind="click: accept, text: label_decrypt, disable: busy" ></button>
+        </div>
     </div>
 
     <script>

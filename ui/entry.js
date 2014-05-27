@@ -6,6 +6,8 @@ var Curve = require('jkurwa'), priv=null,
     identview = require('./identity.js'),
     Keyholder = require('./keyholder.js'),
     Stored = require("./stored.js").Stored,
+    Langs = require('./langs.js').Langs,
+    Password = require('./password.js').Password,
     locale = require("./locale.js"),
     _ = locale.gettext,
     cookies = require('cookies-js'),
@@ -13,6 +15,8 @@ var Curve = require('jkurwa'), priv=null,
     doc,
     ident,
     stored,
+    langs,
+    password,
     vm;
 
 var decode_import = function(indata, password) {
@@ -41,19 +45,18 @@ function decode_result(status, data) {
 function need_cb(evt) {
     if(evt.password === true) {
         vm.dnd_visible(false);
-        vm.pw_visible(true);
+        password.visible(true);
     }
 }
 
 function feedback_cb(evt) {
     if(evt.password === false) {
         console.log("password fail");
-        vm.pw_error(true);
+        password.settle(true);
     }
     if(evt.password === true) {
-        console.log("password accepted");
-        vm.pw_error(false);
-        vm.pw_visible(false);
+        password.settle(false);
+        password.visible(false);
     }
     if(evt.key === true) {
         vm.dnd_state(1);
@@ -71,6 +74,7 @@ function feedback_cb(evt) {
     if((evt.key === true) || (evt.cert === true)) {
         if(keys.is_ready_sign()) {
             vm.dnd_visible(false);
+            stored.needed(false);
             vm.key_controls_visible(true);
             vm.key_info_visible(true);
         } else {
@@ -148,11 +152,15 @@ function setup() {
     doc = new docview.Document({sign_text: sign_cb});
     ident = new identview.Ident();
     stored = new Stored({select: file_selected});
+    langs = new Langs(['UA', 'RU']);
+    password = new Password(password_cb);
     dnd.setup(file_dropped);
     ko.applyBindings(vm, document.getElementById("ui"));
     ko.applyBindings(doc, document.getElementById("document"));
     ko.applyBindings(ident, document.getElementById("identity"));
     ko.applyBindings(stored, document.getElementById("stored"));
+    ko.applyBindings(langs, document.getElementById("langs"));
+    ko.applyBindings(password, document.getElementById("password"));
 
     vm.visible(true);
 

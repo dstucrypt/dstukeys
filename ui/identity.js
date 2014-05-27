@@ -1,3 +1,5 @@
+var _ = require('./locale.js').gettext;
+
 var Ident = function() {
     var ob;
 
@@ -53,7 +55,19 @@ var Ident = function() {
         }
 
         return city;
-    }
+    };
+
+    var label = ko.computed(function() {
+        var tpl = _('identity_t');
+        var ret;
+
+        ret = tpl.replace('%1', commonName());
+        ret = ret.replace('%2', located());
+        ret = ret.replace('%3', ipn());
+        ret = ret.replace('%4', title());
+
+        return ret;
+    }, this);
 
     ob = {
         visible: visible,
@@ -72,6 +86,7 @@ var Ident = function() {
         validFrom: validFrom,
         validTo: validTo,
         located: located,
+        label: label,
     };
     return ob;
 }

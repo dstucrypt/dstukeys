@@ -1,3 +1,6 @@
+var locale = require('./locale.js'),
+    _label = locale.label;
+
 var StoredEl = function(evt, data) {
     var ob;
     var selected = ko.observable(false);
@@ -46,6 +49,7 @@ var StoredEl = function(evt, data) {
 var Stored = function(evt) {
     var ob;
     var items = ko.observableArray();
+    var needed = ko.observable(true);
     var feed = function(data) {
         var i, ob;
         for(i=0; ob=data[i]; i++) {
@@ -53,13 +57,15 @@ var Stored = function(evt) {
         }
     };
     var visible = ko.computed(function() {
-        return items().length > 0;
+        return items().length > 0 && needed();
     }, this);
 
     ob = {
         feed: feed,
         items: items,
         visible: visible,
+        needed: needed,
+        avail_certs: _label('avail_certs'),
     };
 
     return ob;
