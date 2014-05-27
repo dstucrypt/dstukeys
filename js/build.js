@@ -4491,6 +4491,7 @@ module.exports.CertMain = CertMain;
 
 },{}],"JxKr0o":[function(require,module,exports){
 var dnd = require('./dnd.js'),
+    locale = require("./locale.js"),
     Keyholder = require('./keyholder.js'),
     CertMain = require('./cert.js').CertMain,
     Ident = require('./identity.js').Ident,
@@ -4511,9 +4512,12 @@ var CertController = function() {
 function file_dropped(u8) {
     view.error(null);
     keys.have({key: u8});
-    console.log("dropped");
 };
 
+var file_dloaded = function(r) {
+    view.error(null);
+    keys.have({key: r})
+};
 
 function need_cb(evt) { };
 
@@ -4533,8 +4537,26 @@ function feedback_cb(evt) {
     }
 };
 
+var query = function() {
+    var ret = {}, hash, part, part_s, i;
+
+    hash = window.location.hash.substr(1).split('|');
+
+    for(i=0; part=hash[i]; i++) {
+        part_s = part.split('=', 2);
+        ret[part_s[0]] = part_s[1];
+    }
+
+    return ret;
+};
 
 var setup = function() {
+    var q;
+
+    locale.set_current(locale.read());
+
+    q = query();
+
     keys = new Keyholder({need: need_cb, feedback: feedback_cb});
     view = new CertMain();
     ident = new Ident();
@@ -4545,13 +4567,17 @@ var setup = function() {
     ko.applyBindings(ident, document.getElementById("ident"));
     ko.applyBindings(issuer_ident, document.getElementById("issuer_ident"));
 
-    view.dnd_text("Сбросьте сертификат для просмотра");
+    if(q.ipn !== undefined) {
+        $.get('/api/cert/ipn/'+q.ipn, file_dloaded);
+    } else {
+        view.dnd_text("Сбросьте сертификат для просмотра");
+    }
 };
 
 
 module.exports.setup = setup;
 
-},{"./cert.js":25,"./dnd.js":28,"./identity.js":34,"./keyholder.js":35}],"certui":[function(require,module,exports){
+},{"./cert.js":25,"./dnd.js":28,"./identity.js":34,"./keyholder.js":35,"./locale.js":38}],"certui":[function(require,module,exports){
 module.exports=require('JxKr0o');
 },{}],28:[function(require,module,exports){
 /*jslint plusplus: true */
@@ -4784,8 +4810,6 @@ var Curve = require('jkurwa'), priv=null,
     Password = require('./password.js').Password,
     Dnd = require('./dnd_ui.js').Dnd,
     locale = require("./locale.js"),
-    _ = locale.gettext,
-    cookies = require('cookies-js'),
     keys,
     doc,
     ident,
@@ -4900,20 +4924,9 @@ function file_selected(data) {
     keys.have({key: data});
 }
 
-function read_locale() {
-    var code;
-    code = cookies.get('dstu_ui_locale');
-    if((code === undefined) || (code === null) || (code.length !== 2)) {
-        code = 'ua';
-        cookies.set('dstu_ui_locale', code);
-    }
-
-    return code;
-}
-
 var change_locale = function(code) {
-    cookies.set('dstu_ui_locale', code);
-    locale.set_current(read_locale());
+    locale.save(code);
+    locale.set_current(code);
 };
 
 var login_cb = function() {
@@ -4921,8 +4934,23 @@ var login_cb = function() {
     dnd.visible(true);
 };
 
+var publish_certificate = function() {
+    var ipn, pem, request;
+
+    ipn = keys.cert.extension.ipn.EDRPOU;
+    pem = keys.get_pem({cert: true});
+    request = {
+        ipn: ipn,
+        cert: pem,
+    };
+    
+    $.post('/api/cert.publish', request, function(response){
+        console.log("published " + response);
+    });
+};
+
 function setup() {
-    locale.set_current(read_locale());
+    locale.set_current(locale.read());
     keys = new Keyholder({need: need_cb, feedback: feedback_cb});
     vm = new view.Main({
         password: password_cb,
@@ -4930,6 +4958,7 @@ function setup() {
         to_storage: to_storage,
         sign_box: sign_box,
         login: login_cb,
+        cert_pub: publish_certificate,
     });
     doc = new docview.Document({sign_text: sign_cb});
     ident = new identview.Ident();
@@ -4954,7 +4983,7 @@ function setup() {
 module.exports.setup = setup;
 module.exports.locale = change_locale;
 
-},{"./dnd_ui.js":29,"./document.js":30,"./dstu.js":31,"./identity.js":34,"./keyholder.js":35,"./langs.js":37,"./locale.js":38,"./password.js":39,"./stored.js":40,"./ui.js":41,"cookies-js":"4U1mNF","jkurwa":"B9c0rZ"}],34:[function(require,module,exports){
+},{"./dnd_ui.js":29,"./document.js":30,"./dstu.js":31,"./identity.js":34,"./keyholder.js":35,"./langs.js":37,"./locale.js":38,"./password.js":39,"./stored.js":40,"./ui.js":41,"jkurwa":"B9c0rZ"}],34:[function(require,module,exports){
 var _ = require('./locale.js').gettext;
 
 var Ident = function() {
@@ -5327,6 +5356,7 @@ locale.ua = {
     crypted_key_0: "Секретний ключ захищений паролем.",
     crypted_key_1: "Введіть пароль у поле",
     label_decrypt: "Розшифрувати",
+    label_publish: "Завантажити сертифікат на сайт",
     identity_t: "%1 зареєстрован у %2 та ідентифікується податковим номером %3 ( %4 )",
     login: "Увійти",
     title_dnd: "Додайте свій электронний підпис",
@@ -5354,6 +5384,7 @@ locale.ru = {
     crypted_key_1: "Введете пароль в поле",
 
     label_decrypt: "Расшифровать",
+    label_publish: "Загрузить сертификат на сайт",
     identity_t: "%1 зарегистрирован в %2 и идентифицируется налоговым номером %3 ( %4 )",
     login: "Войти",
     title_dnd: "Добавьте свою электронную подпись",
@@ -5411,6 +5442,7 @@ module.exports.Langs = Langs;
 },{"./locale.js":38}],38:[function(require,module,exports){
 var locale = require('./l10n.js'),
     locale_code = ko.observable(),
+    cookies = require('cookies-js'),
     label,
     current;
 
@@ -5422,6 +5454,21 @@ var set_current = function(code) {
     current = locale[code];
     locale_code(code);
     locale_code.notifySubscribers();
+}
+
+var save = function(code) {
+    cookies.set('dstu_ui_locale', code);
+};
+
+var read = function() {
+    var code;
+    code = cookies.get('dstu_ui_locale');
+    if((code === undefined) || (code === null) || (code.length !== 2)) {
+        code = 'ua';
+        cookies.set('dstu_ui_locale', code);
+    }
+
+    return code;
 }
 
 var gettext = function(msgid) {
@@ -5446,8 +5493,10 @@ module.exports.gettext = gettext;
 module.exports._ = gettext;
 module.exports.set_current = set_current;
 module.exports.label = label;
+module.exports.read = read;
+module.exports.save = save;
 
-},{"./l10n.js":36}],39:[function(require,module,exports){
+},{"./l10n.js":36,"cookies-js":"4U1mNF"}],39:[function(require,module,exports){
 var locale = require('./locale.js'),
     _label = locale.label;
 
@@ -5605,6 +5654,9 @@ var Main = function (cb) {
     var do_sign = function() {
         cb.sign_box();
     };
+    var do_pub = function() {
+        cb.cert_pub();
+    };
 
     var set_pem = function(val) {
         if(val === undefined) {
@@ -5631,10 +5683,12 @@ var Main = function (cb) {
         key_info: key_info,
         show_pem: show_pem,
         do_save: do_save,
+        do_pub: do_pub,
         do_sign: do_sign,
         do_login: do_login,
         label_sign: _label('add_sign'),
         label_store: _label('to_store'),
+        label_publish: _label('label_publish'),
         set_pem: set_pem,
         pem_text: pem_text,
         pem_visible: pem_visible,
