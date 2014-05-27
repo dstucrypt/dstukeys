@@ -159,7 +159,7 @@ function setup() {
     doc = new docview.Document({sign_text: sign_cb});
     ident = new identview.Ident();
     stored = new Stored({select: file_selected});
-    langs = new Langs(['UA', 'RU']);
+    langs = new Langs(['UA', 'RU'], {changed: change_locale});
     password = new Password(password_cb);
     dnd = new Dnd();
     dnd.stored = stored;

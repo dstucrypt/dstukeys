@@ -5,9 +5,8 @@ var LangEl = function(p_code, changed) {
     var code = ko.observable(p_code);
     var selected = ko.observable(false);
     var select = function() {
-        changed();
+        changed(p_code.toLowerCase());
         selected(true);
-        locale.set_current(p_code.toLowerCase());
     };
     ob = {
         code: code,
@@ -17,18 +16,20 @@ var LangEl = function(p_code, changed) {
     return ob;
 };
 
-var Langs = function(inp) {
+var Langs = function(inp, cb) {
     var ob;
     var items = ko.observableArray();;
     var i, code;
    
-    var changed = function() {
+    var changed = function(code) {
         var item;
         var i;
 
         for(i=0; item=items[i]; i++) {
             item.selected(false);
         }
+
+        cb.changed(code);
     }
     
     for(i=0; code=inp[i]; i++) {

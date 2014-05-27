@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
 
-    <div id="langs" style="float: right; margin: 10px 5px">
+    <div id="langs">
         <div data-bind="foreach: items">
         <span data-bind="text: code, click: select"></span>
         </div>
     </div>
 
     <div id="ui" data-bind="visible: visible" style="display: none">
-        <p data-bind="text: intro_0"></p>
+        <!-- <p data-bind="text: intro_0"></p> -->
         <p class="big" data-bind="text: login, click: do_login, visible: big_visible"></p>
 
         <p data-bind="visible: error_visible">
