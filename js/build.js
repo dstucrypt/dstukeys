@@ -47,7 +47,7 @@ return this};d.inverse=function(){return this.power(this.modulus.sub(2))};c.from
 sjcl.bn.prime={p127:M(127,[[0,-1]]),p25519:M(255,[[0,-19]]),p192k:M(192,[[32,-1],[12,-1],[8,-1],[7,-1],[6,-1],[3,-1],[0,-1]]),p224k:M(224,[[32,-1],[12,-1],[11,-1],[9,-1],[7,-1],[4,-1],[1,-1],[0,-1]]),p256k:M(0x100,[[32,-1],[9,-1],[8,-1],[7,-1],[6,-1],[4,-1],[0,-1]]),p192:M(192,[[0,-1],[64,-1]]),p224:M(224,[[0,1],[96,-1]]),p256:M(0x100,[[0,-1],[96,1],[192,1],[224,-1]]),p384:M(384,[[0,-1],[32,1],[96,-1],[128,-1]]),p521:M(521,[[0,-1]])};
 sjcl.bn.random=function(a,b){"object"!==typeof a&&(a=new sjcl.bn(a));for(var c,d,e=a.limbs.length,f=a.limbs[e-1]+1,g=new sjcl.bn;;){do c=sjcl.random.randomWords(e,b),0>c[e-1]&&(c[e-1]+=0x100000000);while(Math.floor(c[e-1]/f)===Math.floor(0x100000000/f));c[e-1]%=f;for(d=0;d<e-1;d++)c[d]&=a.radixMask;g.limbs=c;if(!g.greaterEquals(a))return g}};
 
-},{"crypto":50}],"RxwtOC":[function(require,module,exports){
+},{"crypto":51}],"RxwtOC":[function(require,module,exports){
 var asn1 = exports;
 
 // Optional bignum
@@ -110,7 +110,7 @@ Entity.prototype.encode = function encode(data, enc, /* internal */ reporter) {
   return this.encoders[enc].encode(data, reporter);
 };
 
-},{"../asn1":"RxwtOC","util":58,"vm":59}],6:[function(require,module,exports){
+},{"../asn1":"RxwtOC","util":59,"vm":60}],6:[function(require,module,exports){
 var assert = require('assert');
 var util = require('util');
 var Reporter = require('../base').Reporter;
@@ -228,7 +228,7 @@ EncoderBuffer.prototype.join = function join(out, offset) {
   return out;
 };
 
-},{"../base":7,"assert":42,"buffer":"VTj7jY","util":58}],7:[function(require,module,exports){
+},{"../base":7,"assert":43,"buffer":"VTj7jY","util":59}],7:[function(require,module,exports){
 var base = exports;
 
 base.Reporter = require('./reporter').Reporter;
@@ -753,7 +753,7 @@ Node.prototype._encodePrimitive = function encodePrimitive(tag, data) {
     throw new Error('Unsupported tag: ' + tag);
 };
 
-},{"../base":7,"assert":42}],9:[function(require,module,exports){
+},{"../base":7,"assert":43}],9:[function(require,module,exports){
 var util = require('util');
 
 function Reporter(options) {
@@ -844,7 +844,7 @@ ReporterError.prototype.rethrow = function rethrow(msg) {
   return this;
 };
 
-},{"util":58}],10:[function(require,module,exports){
+},{"util":59}],10:[function(require,module,exports){
 var constants = require('../constants');
 
 exports.tagClass = {
@@ -1210,7 +1210,7 @@ function derDecodeLen(buf, primitive, fail) {
   return len;
 }
 
-},{"../../asn1":"RxwtOC","util":58}],13:[function(require,module,exports){
+},{"../../asn1":"RxwtOC","util":59}],13:[function(require,module,exports){
 var decoders = exports;
 
 decoders.der = require('./der');
@@ -1449,7 +1449,7 @@ function encodeTag(tag, primitive, cls, reporter) {
   return res;
 }
 
-},{"../../asn1":"RxwtOC","buffer":"VTj7jY","util":58}],15:[function(require,module,exports){
+},{"../../asn1":"RxwtOC","buffer":"VTj7jY","util":59}],15:[function(require,module,exports){
 var encoders = exports;
 
 encoders.der = require('./der');
@@ -4551,7 +4551,7 @@ var setup = function() {
 
 module.exports.setup = setup;
 
-},{"./cert.js":25,"./dnd.js":28,"./identity.js":33,"./keyholder.js":34}],"certui":[function(require,module,exports){
+},{"./cert.js":25,"./dnd.js":28,"./identity.js":34,"./keyholder.js":35}],"certui":[function(require,module,exports){
 module.exports=require('JxKr0o');
 },{}],28:[function(require,module,exports){
 /*jslint plusplus: true */
@@ -4599,6 +4599,30 @@ function setup(cb) {
 exports.setup = setup;
 
 },{}],29:[function(require,module,exports){
+var locale = require('./locale.js'),
+    _label = locale.label,
+    dnd = require('./dnd.js');
+
+var Dnd = function(cb) {
+    var ob;
+    var state = ko.observable(0);
+
+    var visible = ko.observable(false);
+
+    ob = {
+        visible: visible,
+        state: state,
+        text: _label('dnd', state),
+        intro_1: _label('intro_1'),
+        title_dnd: _label('title_dnd'),
+        setup: dnd.setup,
+    }; 
+    return ob;
+}
+
+module.exports.Dnd = Dnd;
+
+},{"./dnd.js":28,"./locale.js":38}],30:[function(require,module,exports){
 
 var ia2hex = function(val) {
     var ret = '', i, c;
@@ -4642,7 +4666,7 @@ var Document = function(cb) {
 
 module.exports.Document = Document;
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 /*
  *
  * Interface code for emscripten-compiled gost89 (dstu200) code
@@ -4746,9 +4770,8 @@ module.exports.convert_password = convert_password;
 module.exports.compute_hash = compute_hash
 module.exports.onmessage = onmessage;
 
-},{"./util.js":41}],"0YlI+X":[function(require,module,exports){
+},{"./util.js":42}],"0YlI+X":[function(require,module,exports){
 var Curve = require('jkurwa'), priv=null,
-    dnd = require('./dnd.js'),
     view = require('./ui.js'),
     dstu = require('./dstu.js'),
     docview = require('./document.js'),
@@ -4757,6 +4780,7 @@ var Curve = require('jkurwa'), priv=null,
     Stored = require("./stored.js").Stored,
     Langs = require('./langs.js').Langs,
     Password = require('./password.js').Password,
+    Dnd = require('./dnd_ui.js').Dnd,
     locale = require("./locale.js"),
     _ = locale.gettext,
     cookies = require('cookies-js'),
@@ -4766,6 +4790,7 @@ var Curve = require('jkurwa'), priv=null,
     stored,
     langs,
     password,
+    dnd,
     vm;
 
 var decode_import = function(indata, password) {
@@ -4793,7 +4818,7 @@ function decode_result(status, data) {
 
 function need_cb(evt) {
     if(evt.password === true) {
-        vm.dnd_visible(false);
+        dnd.visible(false);
         password.visible(true);
     }
 }
@@ -4808,7 +4833,7 @@ function feedback_cb(evt) {
         password.visible(false);
     }
     if(evt.key === true) {
-        vm.dnd_state(1);
+        dnd.state(1);
     }
     if(evt.key === false) {
         vm.set_error("You dropped some file, but it's not private key (or we maybe we can't read it)");
@@ -4817,17 +4842,17 @@ function feedback_cb(evt) {
         ident.set_ident(keys.cert.subject, keys.cert.extension, keys.cert.pubkey);
         ident.visible(true);
         keys.save_cert();
-        vm.dnd_state(0);
+        dnd.state(0);
     }
 
     if((evt.key === true) || (evt.cert === true)) {
         if(keys.is_ready_sign()) {
-            vm.dnd_visible(false);
+            dnd.visible(false);
             stored.needed(false);
             vm.key_controls_visible(true);
             vm.key_info_visible(true);
         } else {
-            vm.dnd_visible(true);
+            dnd.visible(true);
         }
     }
 }
@@ -4846,7 +4871,7 @@ function to_storage() {
 }
 
 function sign_box() {
-    vm.dnd_visible(false);
+    dnd.visible(false);
     vm.pem_visible(false);
     vm.error_visible(false);
     vm.key_controls_visible(false);
@@ -4889,6 +4914,11 @@ var change_locale = function(code) {
     locale.set_current(read_locale());
 };
 
+var login_cb = function() {
+    vm.big_visible(false);
+    dnd.visible(true);
+};
+
 function setup() {
     locale.set_current(read_locale());
     keys = new Keyholder({need: need_cb, feedback: feedback_cb});
@@ -4897,19 +4927,22 @@ function setup() {
         pem: pem_cb,
         to_storage: to_storage,
         sign_box: sign_box,
+        login: login_cb,
     });
     doc = new docview.Document({sign_text: sign_cb});
     ident = new identview.Ident();
     stored = new Stored({select: file_selected});
     langs = new Langs(['UA', 'RU']);
     password = new Password(password_cb);
+    dnd = new Dnd();
+    dnd.stored = stored;
     dnd.setup(file_dropped);
     ko.applyBindings(vm, document.getElementById("ui"));
     ko.applyBindings(doc, document.getElementById("document"));
     ko.applyBindings(ident, document.getElementById("identity"));
-    ko.applyBindings(stored, document.getElementById("stored"));
     ko.applyBindings(langs, document.getElementById("langs"));
     ko.applyBindings(password, document.getElementById("password"));
+    ko.applyBindings(dnd, document.getElementById("dnd"));
 
     vm.visible(true);
 
@@ -4919,9 +4952,9 @@ function setup() {
 module.exports.setup = setup;
 module.exports.locale = change_locale;
 
-},{"./dnd.js":28,"./document.js":29,"./dstu.js":30,"./identity.js":33,"./keyholder.js":34,"./langs.js":36,"./locale.js":37,"./password.js":38,"./stored.js":39,"./ui.js":40,"cookies-js":"4U1mNF","jkurwa":"B9c0rZ"}],"ui":[function(require,module,exports){
+},{"./dnd_ui.js":29,"./document.js":30,"./dstu.js":31,"./identity.js":34,"./keyholder.js":35,"./langs.js":37,"./locale.js":38,"./password.js":39,"./stored.js":40,"./ui.js":41,"cookies-js":"4U1mNF","jkurwa":"B9c0rZ"}],"ui":[function(require,module,exports){
 module.exports=require('0YlI+X');
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 var _ = require('./locale.js').gettext;
 
 var Ident = function() {
@@ -5017,7 +5050,7 @@ var Ident = function() {
 
 module.exports.Ident = Ident;
 
-},{"./locale.js":37}],34:[function(require,module,exports){
+},{"./locale.js":38}],35:[function(require,module,exports){
 var Curve = require('jkurwa'),
     b64_encode = Curve.b64_encode,
     dstu = require('./dstu.js');
@@ -5055,7 +5088,7 @@ var Keyholder = function(cb) {
         return cert.pubkey.equals(key_pub_compressed);
     };
     have_password = function(decoded) {
-        if ((decoded === undefined) || 
+        if ((decoded === undefined) ||
             (keycoder.is_valid(decoded) !== true)) {
             cb.feedback({password: false});
             cb.need({password: true});
@@ -5279,13 +5312,13 @@ var Keyholder = function(cb) {
 
 module.exports = Keyholder;
 
-},{"./dstu.js":30,"jkurwa":"B9c0rZ"}],35:[function(require,module,exports){
+},{"./dstu.js":31,"jkurwa":"B9c0rZ"}],36:[function(require,module,exports){
 var locale = {};
 
 locale.ua = {
     dnd_0: "Перетягніть файл ключа сюди",
     dnd_1: "Теперь перетягніть файл сертифікату",
-    intro_1: ("Щоб накласти на документ електронний підпис, перетягніть на сторінку файл ключа, який вам видали у Центрі Сертифікації. Зазвичай, чей файл має ім\`я \"key_6.dat\", та є прихованим на флешці. Після цього, ви можете зберегти ключ у локальне сховище браузеру."),
+    intro_1: ("Перетягніть на сторінку файл ключа, який вам видали у Центрі Сертифікації. Зазвичай, чей файл має ім\`я \"key_6.dat\", та є прихованим на флешці. Після цього, ви можете зберегти ключ у локальне сховище браузеру."),
 
     add_sign: "Накласти підпис на документ",
     to_store: "Зберегти у свовище",
@@ -5295,13 +5328,15 @@ locale.ua = {
     crypted_key_1: "Введіть пароль у поле",
     label_decrypt: "Розшифрувати",
     identity_t: "%1 зареєстрован у %2 та ідентифікується податковим номером %3 ( %4 )",
+    login: "Увійти",
+    title_dnd: "Додайте свій электронний підпис",
 };
 
 locale.ru = {
     dnd_0: "Перетащите файл ключа",
     dnd_1: "Теперь перетащите файл сертификата",
     intro_0: ("Тут можно подписать любой документ цифровой подписью,"+
-    " соответствующей Державному Стандарту України. " + 
+    " соответствующей Державному Стандарту України. " +
     "Физические лица, предприниматели и юридические лица могут получить "+
     "такую подпись в АЦСК Миндоходов или купить у частных центров "+
     "сертификации. Согласно законов Украины, такая подпись "+
@@ -5309,7 +5344,7 @@ locale.ru = {
     "для сдачи отчетов в налоговую, проведения банковских платежей, "+
     "заключения договоров и так далее."),
 
-    intro_1: ("Чтобы наложить электронную подпись на документ, перетащите на страницу файл секретного ключа, который вам выдали в Центре Сертификации. Обычно этот файл называется \"key_6.dat\" и находится на флешке в скрытом виде"),
+    intro_1: ("Перетащите на страницу файл секретного ключа, который вам выдали в Центре Сертификации. Обычно этот файл называется \"key_6.dat\" и находится на флешке в скрытом виде"),
 
     add_sign: "Наложить подпись на документ",
     to_store: "Сохранить в хранилище",
@@ -5320,12 +5355,13 @@ locale.ru = {
 
     label_decrypt: "Расшифровать",
     identity_t: "%1 зарегистрирован в %2 и идентифицируется налоговым номером %3 ( %4 )",
-
+    login: "Войти",
+    title_dnd: "Добавьте свою электронную подпись",
 };
 
 module.exports = locale;
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 var locale = require('./locale.js');
 
 var LangEl = function(p_code, changed) {
@@ -5371,7 +5407,7 @@ var Langs = function(inp) {
 
 module.exports.Langs = Langs;
 
-},{"./locale.js":37}],37:[function(require,module,exports){
+},{"./locale.js":38}],38:[function(require,module,exports){
 var locale = require('./l10n.js'),
     locale_code = ko.observable(),
     label,
@@ -5410,7 +5446,7 @@ module.exports._ = gettext;
 module.exports.set_current = set_current;
 module.exports.label = label;
 
-},{"./l10n.js":35}],38:[function(require,module,exports){
+},{"./l10n.js":36}],39:[function(require,module,exports){
 var locale = require('./locale.js'),
     _label = locale.label;
 
@@ -5458,7 +5494,7 @@ var Password = function(have_cb) {
 
 module.exports.Password = Password;
 
-},{"./locale.js":37}],39:[function(require,module,exports){
+},{"./locale.js":38}],40:[function(require,module,exports){
 var locale = require('./locale.js'),
     _label = locale.label;
 
@@ -5534,14 +5570,14 @@ var Stored = function(evt) {
 
 module.exports.Stored = Stored;
 
-},{"./locale.js":37}],40:[function(require,module,exports){
+},{"./locale.js":38}],41:[function(require,module,exports){
 var locale = require('./locale.js'),
     _label = locale.label;
 
 var Main = function (cb) {
     var ob;
 
-    var dnd_visible = ko.observable(true);
+    var big_visible = ko.observable(true);
     var key_controls_visible = ko.observable(false);
     var key_info_visible = ko.observable(false);
     var key_info = ko.observable("");
@@ -5550,7 +5586,10 @@ var Main = function (cb) {
     var error_visible = ko.observable(false);
     var error_text = ko.observable("");
     var visible = ko.observable(false);
-    var dnd_state = ko.observable(0);
+
+    var do_login = function() {
+        cb.login();
+    }
 
     var show_pem = function() {
         if(pem_visible()) {
@@ -5586,13 +5625,13 @@ var Main = function (cb) {
     }
 
     ob = {
-        dnd_visible: dnd_visible,
         key_controls_visible: key_controls_visible,
         key_info_visible: key_info_visible,
         key_info: key_info,
         show_pem: show_pem,
         do_save: do_save,
         do_sign: do_sign,
+        do_login: do_login,
         label_sign: _label('add_sign'),
         label_store: _label('to_store'),
         set_pem: set_pem,
@@ -5602,11 +5641,9 @@ var Main = function (cb) {
         error_text: error_text,
         error_visible: error_visible,
         visible: visible,
-        dnd_state: dnd_state,
+        big_visible: big_visible,
         intro_0: _label('intro_0'),
-        intro_1: _label('intro_1'),
-        dnd_text: _label('dnd', dnd_state),
-        
+        login: _label('login'),
     };
     return ob;
 }
@@ -5614,7 +5651,7 @@ var Main = function (cb) {
 exports.Main = Main;
 module.exports.Main = Main;
 
-},{"./locale.js":37}],41:[function(require,module,exports){
+},{"./locale.js":38}],42:[function(require,module,exports){
 var read_buf = function(ptr, sz) {
     var ret = [], x=0;
     for(var i = 0; i < sz; i++) {
@@ -5668,7 +5705,7 @@ var asnbuf = function(asn_l) {
 exports.asnbuf = asnbuf
 exports.read_buf = read_buf
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -6030,14 +6067,14 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":44}],43:[function(require,module,exports){
+},{"util/":45}],44:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],44:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -6627,7 +6664,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("UPikzY"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":43,"UPikzY":56,"inherits":55}],"buffer":[function(require,module,exports){
+},{"./support/isBuffer":44,"UPikzY":57,"inherits":56}],"buffer":[function(require,module,exports){
 module.exports=require('VTj7jY');
 },{}],"VTj7jY":[function(require,module,exports){
 /*!
@@ -7779,7 +7816,7 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":47,"ieee754":48}],47:[function(require,module,exports){
+},{"base64-js":48,"ieee754":49}],48:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -7902,7 +7939,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	module.exports.fromByteArray = uint8ToBase64
 }())
 
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -7988,7 +8025,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],49:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 var Buffer = require('buffer').Buffer;
 var intSize = 4;
 var zeroBuffer = new Buffer(intSize); zeroBuffer.fill(0);
@@ -8025,7 +8062,7 @@ function hash(buf, fn, hashSize, bigEndian) {
 
 module.exports = { hash: hash };
 
-},{"buffer":"VTj7jY"}],50:[function(require,module,exports){
+},{"buffer":"VTj7jY"}],51:[function(require,module,exports){
 var Buffer = require('buffer').Buffer
 var sha = require('./sha')
 var sha256 = require('./sha256')
@@ -8124,7 +8161,7 @@ each(['createCredentials'
   }
 })
 
-},{"./md5":51,"./rng":52,"./sha":53,"./sha256":54,"buffer":"VTj7jY"}],51:[function(require,module,exports){
+},{"./md5":52,"./rng":53,"./sha":54,"./sha256":55,"buffer":"VTj7jY"}],52:[function(require,module,exports){
 /*
  * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
  * Digest Algorithm, as defined in RFC 1321.
@@ -8289,7 +8326,7 @@ module.exports = function md5(buf) {
   return helpers.hash(buf, core_md5, 16);
 };
 
-},{"./helpers":49}],52:[function(require,module,exports){
+},{"./helpers":50}],53:[function(require,module,exports){
 // Original code adapted from Robert Kieffer.
 // details at https://github.com/broofa/node-uuid
 (function() {
@@ -8322,7 +8359,7 @@ module.exports = function md5(buf) {
 
 }())
 
-},{}],53:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
  * in FIPS PUB 180-1
@@ -8425,7 +8462,7 @@ module.exports = function sha1(buf) {
   return helpers.hash(buf, core_sha1, 20, true);
 };
 
-},{"./helpers":49}],54:[function(require,module,exports){
+},{"./helpers":50}],55:[function(require,module,exports){
 
 /**
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-256, as defined
@@ -8506,7 +8543,7 @@ module.exports = function sha256(buf) {
   return helpers.hash(buf, core_sha256, 32, true);
 };
 
-},{"./helpers":49}],55:[function(require,module,exports){
+},{"./helpers":50}],56:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -8531,7 +8568,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],56:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -8596,11 +8633,11 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],57:[function(require,module,exports){
-module.exports=require(43)
 },{}],58:[function(require,module,exports){
 module.exports=require(44)
-},{"./support/isBuffer":57,"UPikzY":56,"inherits":55}],59:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
+module.exports=require(45)
+},{"./support/isBuffer":58,"UPikzY":57,"inherits":56}],60:[function(require,module,exports){
 var indexOf = require('indexof');
 
 var Object_keys = function (obj) {
@@ -8740,7 +8777,7 @@ exports.createContext = Script.createContext = function (context) {
     return copy;
 };
 
-},{"indexof":60}],60:[function(require,module,exports){
+},{"indexof":61}],61:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
