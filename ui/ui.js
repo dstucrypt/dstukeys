@@ -4,7 +4,7 @@ var locale = require('./locale.js'),
 var Main = function (cb) {
     var ob;
 
-    var dnd_visible = ko.observable(true);
+    var big_visible = ko.observable(true);
     var key_controls_visible = ko.observable(false);
     var key_info_visible = ko.observable(false);
     var key_info = ko.observable("");
@@ -13,7 +13,10 @@ var Main = function (cb) {
     var error_visible = ko.observable(false);
     var error_text = ko.observable("");
     var visible = ko.observable(false);
-    var dnd_state = ko.observable(0);
+
+    var do_login = function() {
+        cb.login();
+    }
 
     var show_pem = function() {
         if(pem_visible()) {
@@ -49,13 +52,13 @@ var Main = function (cb) {
     }
 
     ob = {
-        dnd_visible: dnd_visible,
         key_controls_visible: key_controls_visible,
         key_info_visible: key_info_visible,
         key_info: key_info,
         show_pem: show_pem,
         do_save: do_save,
         do_sign: do_sign,
+        do_login: do_login,
         label_sign: _label('add_sign'),
         label_store: _label('to_store'),
         set_pem: set_pem,
@@ -65,10 +68,9 @@ var Main = function (cb) {
         error_text: error_text,
         error_visible: error_visible,
         visible: visible,
-        dnd_state: dnd_state,
+        big_visible: big_visible,
         intro_0: _label('intro_0'),
-        intro_1: _label('intro_1'),
-        dnd_text: _label('dnd', dnd_state),
+        login: _label('login'),
     };
     return ob;
 }

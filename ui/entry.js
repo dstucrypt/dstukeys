@@ -1,5 +1,4 @@
 var Curve = require('jkurwa'), priv=null,
-    dnd = require('./dnd.js'),
     view = require('./ui.js'),
     dstu = require('./dstu.js'),
     docview = require('./document.js'),
@@ -8,6 +7,7 @@ var Curve = require('jkurwa'), priv=null,
     Stored = require("./stored.js").Stored,
     Langs = require('./langs.js').Langs,
     Password = require('./password.js').Password,
+    Dnd = require('./dnd_ui.js').Dnd,
     locale = require("./locale.js"),
     _ = locale.gettext,
     cookies = require('cookies-js'),
@@ -17,6 +17,7 @@ var Curve = require('jkurwa'), priv=null,
     stored,
     langs,
     password,
+    dnd,
     vm;
 
 var decode_import = function(indata, password) {
@@ -44,7 +45,7 @@ function decode_result(status, data) {
 
 function need_cb(evt) {
     if(evt.password === true) {
-        vm.dnd_visible(false);
+        dnd.visible(false);
         password.visible(true);
     }
 }
@@ -59,7 +60,7 @@ function feedback_cb(evt) {
         password.visible(false);
     }
     if(evt.key === true) {
-        vm.dnd_state(1);
+        dnd.state(1);
     }
     if(evt.key === false) {
         vm.set_error("You dropped some file, but it's not private key (or we maybe we can't read it)");
@@ -68,17 +69,17 @@ function feedback_cb(evt) {
         ident.set_ident(keys.cert.subject, keys.cert.extension, keys.cert.pubkey);
         ident.visible(true);
         keys.save_cert();
-        vm.dnd_state(0);
+        dnd.state(0);
     }
 
     if((evt.key === true) || (evt.cert === true)) {
         if(keys.is_ready_sign()) {
-            vm.dnd_visible(false);
+            dnd.visible(false);
             stored.needed(false);
             vm.key_controls_visible(true);
             vm.key_info_visible(true);
         } else {
-            vm.dnd_visible(true);
+            dnd.visible(true);
         }
     }
 }
@@ -97,7 +98,7 @@ function to_storage() {
 }
 
 function sign_box() {
-    vm.dnd_visible(false);
+    dnd.visible(false);
     vm.pem_visible(false);
     vm.error_visible(false);
     vm.key_controls_visible(false);
@@ -140,6 +141,11 @@ var change_locale = function(code) {
     locale.set_current(read_locale());
 };
 
+var login_cb = function() {
+    vm.big_visible(false);
+    dnd.visible(true);
+};
+
 function setup() {
     locale.set_current(read_locale());
     keys = new Keyholder({need: need_cb, feedback: feedback_cb});
@@ -148,19 +154,22 @@ function setup() {
         pem: pem_cb,
         to_storage: to_storage,
         sign_box: sign_box,
+        login: login_cb,
     });
     doc = new docview.Document({sign_text: sign_cb});
     ident = new identview.Ident();
     stored = new Stored({select: file_selected});
     langs = new Langs(['UA', 'RU']);
     password = new Password(password_cb);
+    dnd = new Dnd();
+    dnd.stored = stored;
     dnd.setup(file_dropped);
     ko.applyBindings(vm, document.getElementById("ui"));
     ko.applyBindings(doc, document.getElementById("document"));
     ko.applyBindings(ident, document.getElementById("identity"));
-    ko.applyBindings(stored, document.getElementById("stored"));
     ko.applyBindings(langs, document.getElementById("langs"));
     ko.applyBindings(password, document.getElementById("password"));
+    ko.applyBindings(dnd, document.getElementById("dnd"));
 
     vm.visible(true);
 

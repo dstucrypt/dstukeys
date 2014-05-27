@@ -7,17 +7,14 @@
         </div>
     </div>
 
-    <h1>Електронний цифровий підпис</h1>
-
     <div id="ui" data-bind="visible: visible" style="display: none">
         <p data-bind="text: intro_0"></p>
-        <p data-bind="visible: dnd_visible, text: intro_1" ></p>
+        <p class="big" data-bind="text: login, click: do_login, visible: big_visible"></p>
 
         <p data-bind="visible: error_visible">
             <span class="error" data-bind="visible: error_visible, text: error_text"></span>
         </p>
 
-        <div id="drop_zone" data-bind="visible: dnd_visible, text: dnd_text" >Файл бросать сюда.</div>
         <div id="key_info" data-bind="visible: key_info_visible">
             <span data-bind="text: key_info"></span>
         </div>
@@ -47,23 +44,31 @@
         <span data-bind="text: label"></span>
     </div>
 
-    <div id="stored" style="margin: 10px 20px 0 30%; border: 1px solid gray" data-bind="visible: visible">
-    <h3 data-bind="text: avail_certs"></h3>
-    <div data-bind="foreach: items" >
-        <div>
-            <span data-bind="text: label(), click: select"></span>
-            <span data-bind="text: state()"></span>
-            <!-- <span data-bind="click: remove">REMOVE</span> -->
-        </div>
-    </div>
-    </div>
-
-    <div id="password" data-bind="visible: visible" style="display: none">
+    <div id="password" class="modal" data-bind="visible: visible" style="display: none">
         <div id="password_in">
             <h2 data-bind="text: crypted_key_0"></h2>
             <span data-bind="text: crypted_key_1"></span>
             <input id='pw_in' data-bind="css: {field_error: error}, value: value, disable: busy" type="password" />
             <button id="pw_accept" type="button" data-bind="click: accept, text: label_decrypt, disable: busy" ></button>
+        </div>
+    </div>
+
+    <div id="dnd" class="modal" data-bind="visible: visible" style="display: none">
+        <h2 data-bind="text: title_dnd"></h2>
+        <p data-bind="text: intro_1" ></p>
+
+        <div id="drop_zone" data-bind="text: text" ></div>
+
+        <div id="stored" data-bind="with: stored, visible: visible">
+            <h3 data-bind="text: avail_certs"></h3>
+
+            <div data-bind="foreach: items" >
+                <div>
+                    <span data-bind="text: label(), click: select"></span>
+                    <span data-bind="text: state()"></span>
+                    <!-- <span data-bind="click: remove">REMOVE</span> -->
+                </div>
+            </div>
         </div>
     </div>
 
