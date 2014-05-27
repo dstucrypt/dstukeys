@@ -34,6 +34,18 @@ var Keyholder = function(cb) {
 
         return cert.pubkey.equals(key_pub_compressed);
     };
+    have_password = function(decoded) {
+        if ((decoded === undefined) ||
+            (keycoder.is_valid(decoded) !== true)) {
+            cb.feedback({password: false});
+            cb.need({password: true});
+            return;
+        }
+
+        cb.feedback({password: true});
+        ob.raw_key = decoded;
+        have({key: decoded})
+    };
     have_key = function(data) {
         data = keycoder.maybe_pem(data);
 
@@ -90,20 +102,8 @@ var Keyholder = function(cb) {
         if (data.key !== undefined) {
             have_key(data.key);
         }
-        if (data.password !== undefined) {
-            if (ob.encrypted_key !== undefined) {
-                var decoded = dstu.decode_data(ob.encrypted_key, data.password);
-                if ((decoded === undefined) || 
-                    (keycoder.is_valid(decoded) !== true)) {
-                    cb.feedback({password: false});
-                    cb.need({password: true});
-                    return;
-                }
-
-                cb.feedback({password: true});
-                ob.raw_key = decoded;
-                have({key: decoded})
-            }
+        if ((data.password !== undefined) && (ob.encrypted_key !== undefined)) {
+            dstu.decode_data(ob.encrypted_key, data.password, have_password);
         }
     };
     get_curve = function(p) {

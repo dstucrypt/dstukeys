@@ -82,7 +82,6 @@ var Main = function (cb) {
         error_text: error_text,
         error_visible: error_visible,
         visible: visible,
-        dnd_text: dnd_text,
         dnd_state: dnd_state,
         intro_1: _label('intro_1'),
         dnd_text: _label('dnd', dnd_state),

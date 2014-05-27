@@ -77,6 +77,26 @@ var compute_hash = function(contents) {
     throw new Error("Document hasher failed");
 }
 
-module.exports.decode_data = decode_data
+var decode_data_wrap = function(data, password, cb) {
+    var worker;
+    try {
+        worker = new Worker(DSTU_WORKER_URL);
+    } catch (e) {
+        return cb(decode_data(data, password));
+    }
+    worker.onmessage = function(e) {
+        cb(e.data.ret);
+    }
+
+    worker.postMessage({ev: 'dstu', data: data, password: password});
+};
+
+var onmessage = function(e) {
+    var msg = e.data;
+    return decode_data(msg.data, msg.password);
+};
+
+module.exports.decode_data = decode_data_wrap;
 module.exports.convert_password = convert_password;
 module.exports.compute_hash = compute_hash
+module.exports.onmessage = onmessage;
