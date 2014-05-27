@@ -1,5 +1,6 @@
 var locale = require('./l10n.js'),
     locale_code = ko.observable(),
+    cookies = require('cookies-js'),
     label,
     current;
 
@@ -11,6 +12,21 @@ var set_current = function(code) {
     current = locale[code];
     locale_code(code);
     locale_code.notifySubscribers();
+}
+
+var save = function(code) {
+    cookies.set('dstu_ui_locale', code);
+};
+
+var read = function() {
+    var code;
+    code = cookies.get('dstu_ui_locale');
+    if((code === undefined) || (code === null) || (code.length !== 2)) {
+        code = 'ua';
+        cookies.set('dstu_ui_locale', code);
+    }
+
+    return code;
 }
 
 var gettext = function(msgid) {
@@ -35,3 +51,5 @@ module.exports.gettext = gettext;
 module.exports._ = gettext;
 module.exports.set_current = set_current;
 module.exports.label = label;
+module.exports.read = read;
+module.exports.save = save;

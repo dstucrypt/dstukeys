@@ -9,8 +9,6 @@ var Curve = require('jkurwa'), priv=null,
     Password = require('./password.js').Password,
     Dnd = require('./dnd_ui.js').Dnd,
     locale = require("./locale.js"),
-    _ = locale.gettext,
-    cookies = require('cookies-js'),
     keys,
     doc,
     ident,
@@ -125,20 +123,9 @@ function file_selected(data) {
     keys.have({key: data});
 }
 
-function read_locale() {
-    var code;
-    code = cookies.get('dstu_ui_locale');
-    if((code === undefined) || (code === null) || (code.length !== 2)) {
-        code = 'ua';
-        cookies.set('dstu_ui_locale', code);
-    }
-
-    return code;
-}
-
 var change_locale = function(code) {
-    cookies.set('dstu_ui_locale', code);
-    locale.set_current(read_locale());
+    locale.save(code);
+    locale.set_current(code);
 };
 
 var login_cb = function() {
@@ -146,8 +133,23 @@ var login_cb = function() {
     dnd.visible(true);
 };
 
+var publish_certificate = function() {
+    var ipn, pem, request;
+
+    ipn = keys.cert.extension.ipn.EDRPOU;
+    pem = keys.get_pem({cert: true});
+    request = {
+        ipn: ipn,
+        cert: pem,
+    };
+
+    $.post('/api/cert.publish', request, function(response){
+        console.log("published " + response);
+    });
+};
+
 function setup() {
-    locale.set_current(read_locale());
+    locale.set_current(locale.read());
     keys = new Keyholder({need: need_cb, feedback: feedback_cb});
     vm = new view.Main({
         password: password_cb,
@@ -155,6 +157,7 @@ function setup() {
         to_storage: to_storage,
         sign_box: sign_box,
         login: login_cb,
+        cert_pub: publish_certificate,
     });
     doc = new docview.Document({sign_text: sign_cb});
     ident = new identview.Ident();

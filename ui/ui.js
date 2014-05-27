@@ -31,6 +31,9 @@ var Main = function (cb) {
     var do_sign = function() {
         cb.sign_box();
     };
+    var do_pub = function() {
+        cb.cert_pub();
+    };
 
     var set_pem = function(val) {
         if(val === undefined) {
@@ -57,10 +60,12 @@ var Main = function (cb) {
         key_info: key_info,
         show_pem: show_pem,
         do_save: do_save,
+        do_pub: do_pub,
         do_sign: do_sign,
         do_login: do_login,
         label_sign: _label('add_sign'),
         label_store: _label('to_store'),
+        label_publish: _label('label_publish'),
         set_pem: set_pem,
         pem_text: pem_text,
         pem_visible: pem_visible,

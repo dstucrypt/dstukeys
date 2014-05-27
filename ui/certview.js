@@ -1,4 +1,5 @@
 var dnd = require('./dnd.js'),
+    locale = require("./locale.js"),
     Keyholder = require('./keyholder.js'),
     CertMain = require('./cert.js').CertMain,
     Ident = require('./identity.js').Ident,
@@ -19,9 +20,12 @@ var CertController = function() {
 function file_dropped(u8) {
     view.error(null);
     keys.have({key: u8});
-    console.log("dropped");
 };
 
+var file_dloaded = function(r) {
+    view.error(null);
+    keys.have({key: r})
+};
 
 function need_cb(evt) { };
 
@@ -41,8 +45,26 @@ function feedback_cb(evt) {
     }
 };
 
+var query = function() {
+    var ret = {}, hash, part, part_s, i;
+
+    hash = window.location.hash.substr(1).split('|');
+
+    for(i=0; part=hash[i]; i++) {
+        part_s = part.split('=', 2);
+        ret[part_s[0]] = part_s[1];
+    }
+
+    return ret;
+};
 
 var setup = function() {
+    var q;
+
+    locale.set_current(locale.read());
+
+    q = query();
+
     keys = new Keyholder({need: need_cb, feedback: feedback_cb});
     view = new CertMain();
     ident = new Ident();
@@ -53,7 +75,11 @@ var setup = function() {
     ko.applyBindings(ident, document.getElementById("ident"));
     ko.applyBindings(issuer_ident, document.getElementById("issuer_ident"));
 
-    view.dnd_text("Сбросьте сертификат для просмотра");
+    if(q.ipn !== undefined) {
+        $.get('/api/cert/ipn/'+q.ipn, file_dloaded);
+    } else {
+        view.dnd_text("Сбросьте сертификат для просмотра");
+    }
 };
 
 
