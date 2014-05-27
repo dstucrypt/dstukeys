@@ -4770,7 +4770,9 @@ module.exports.convert_password = convert_password;
 module.exports.compute_hash = compute_hash
 module.exports.onmessage = onmessage;
 
-},{"./util.js":42}],"0YlI+X":[function(require,module,exports){
+},{"./util.js":42}],"ui":[function(require,module,exports){
+module.exports=require('0YlI+X');
+},{}],"0YlI+X":[function(require,module,exports){
 var Curve = require('jkurwa'), priv=null,
     view = require('./ui.js'),
     dstu = require('./dstu.js'),
@@ -4932,7 +4934,7 @@ function setup() {
     doc = new docview.Document({sign_text: sign_cb});
     ident = new identview.Ident();
     stored = new Stored({select: file_selected});
-    langs = new Langs(['UA', 'RU']);
+    langs = new Langs(['UA', 'RU'], {changed: change_locale});
     password = new Password(password_cb);
     dnd = new Dnd();
     dnd.stored = stored;
@@ -4952,9 +4954,7 @@ function setup() {
 module.exports.setup = setup;
 module.exports.locale = change_locale;
 
-},{"./dnd_ui.js":29,"./document.js":30,"./dstu.js":31,"./identity.js":34,"./keyholder.js":35,"./langs.js":37,"./locale.js":38,"./password.js":39,"./stored.js":40,"./ui.js":41,"cookies-js":"4U1mNF","jkurwa":"B9c0rZ"}],"ui":[function(require,module,exports){
-module.exports=require('0YlI+X');
-},{}],34:[function(require,module,exports){
+},{"./dnd_ui.js":29,"./document.js":30,"./dstu.js":31,"./identity.js":34,"./keyholder.js":35,"./langs.js":37,"./locale.js":38,"./password.js":39,"./stored.js":40,"./ui.js":41,"cookies-js":"4U1mNF","jkurwa":"B9c0rZ"}],34:[function(require,module,exports){
 var _ = require('./locale.js').gettext;
 
 var Ident = function() {
@@ -5369,9 +5369,8 @@ var LangEl = function(p_code, changed) {
     var code = ko.observable(p_code);
     var selected = ko.observable(false);
     var select = function() {
-        changed();
+        changed(p_code.toLowerCase());
         selected(true);
-        locale.set_current(p_code.toLowerCase());
     };
     ob = {
         code: code,
@@ -5381,18 +5380,20 @@ var LangEl = function(p_code, changed) {
     return ob;
 };
 
-var Langs = function(inp) {
+var Langs = function(inp, cb) {
     var ob;
     var items = ko.observableArray();;
     var i, code;
    
-    var changed = function() {
+    var changed = function(code) {
         var item;
         var i;
 
         for(i=0; item=items[i]; i++) {
             item.selected(false);
         }
+
+        cb.changed(code);
     }
     
     for(i=0; code=inp[i]; i++) {
