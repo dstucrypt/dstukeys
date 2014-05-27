@@ -6,6 +6,9 @@ var Curve = require('jkurwa'), priv=null,
     identview = require('./identity.js'),
     Keyholder = require('./keyholder.js'),
     Stored = require("./stored.js").Stored,
+    locale = require("./locale.js"),
+    _ = locale.gettext,
+    cookies = require('cookies-js'),
     keys,
     doc,
     ident,
@@ -53,7 +56,7 @@ function feedback_cb(evt) {
         vm.pw_visible(false);
     }
     if(evt.key === true) {
-        vm.dnd_text("Теперь бросайте сертификат");
+        vm.dnd_state(1);
     }
     if(evt.key === false) {
         vm.set_error("You dropped some file, but it's not private key (or we maybe we can't read it)");
@@ -62,7 +65,7 @@ function feedback_cb(evt) {
         ident.set_ident(keys.cert.subject, keys.cert.extension, keys.cert.pubkey);
         ident.visible(true);
         keys.save_cert();
-        vm.dnd_text("Теперь бросайте ключ");
+        vm.dnd_state(0);
     }
 
     if((evt.key === true) || (evt.cert === true)) {
@@ -117,7 +120,24 @@ function file_selected(data) {
     keys.have({key: data});
 }
 
+function read_locale() {
+    var code;
+    code = cookies.get('dstu_ui_locale');
+    if((code === undefined) || (code === null) || (code.length !== 2)) {
+        code = 'ua';
+        cookies.set('dstu_ui_locale', code);
+    }
+
+    return code;
+}
+
+var change_locale = function(code) {
+    cookies.set('dstu_ui_locale', code);
+    locale.set_current(read_locale());
+};
+
 function setup() {
+    locale.set_current(read_locale());
     keys = new Keyholder({need: need_cb, feedback: feedback_cb});
     vm = new view.Main({
         password: password_cb,
@@ -134,11 +154,10 @@ function setup() {
     ko.applyBindings(ident, document.getElementById("identity"));
     ko.applyBindings(stored, document.getElementById("stored"));
 
-    vm.dnd_text("Файлы бросать сюда");
     vm.visible(true);
 
     stored.feed(keys.have_local());
 }
 
 module.exports.setup = setup;
-exports.setup = setup;
+module.exports.locale = change_locale;

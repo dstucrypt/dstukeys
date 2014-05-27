@@ -1,3 +1,7 @@
+var locale = require('./locale.js'),
+    _label = locale.label,
+    _ = locale.gettext;
+
 var Main = function (cb) {
     var ob;
 
@@ -13,7 +17,7 @@ var Main = function (cb) {
     var error_visible = ko.observable(false);
     var error_text = ko.observable("");
     var visible = ko.observable(false);
-    var dnd_text = ko.observable("");
+    var dnd_state = ko.observable(0);
 
     var accept_pw = function() {
         var value = pw();
@@ -69,6 +73,8 @@ var Main = function (cb) {
         show_pem: show_pem,
         do_save: do_save,
         do_sign: do_sign,
+        label_sign: _label('add_sign'),
+        label_store: _label('to_store'),
         set_pem: set_pem,
         pem_text: pem_text,
         pem_visible: pem_visible,
@@ -77,6 +83,9 @@ var Main = function (cb) {
         error_visible: error_visible,
         visible: visible,
         dnd_text: dnd_text,
+        dnd_state: dnd_state,
+        intro_1: _label('intro_1'),
+        dnd_text: _label('dnd', dnd_state),
     };
     return ob;
 }

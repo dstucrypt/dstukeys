@@ -1,17 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
 
-    <h1>Электронная цифровая подпись</h1>
+    <h1>Електронний цифровий підпис</h1>
 
     <div id="ui" data-bind="visible: visible" style="display: none">
         <p>
             Тут можно подписать любой документ цифровой подписью, соответствующей Державному Стандарту України. Физические лица, предприниматели и юридические лица могу получить такую подпись в АЦСК Миндоходов или купить у частных центров сертификации. Согласно законов Украины, такая подпись эквивалентна автографу на бумаге и может, и уже используется, для сдачи отчетов в налоговую, проведения банковских платежей, заключения договоров и так далее.
         </p>
-        <p data-bind="visible: dnd_visible" >
-            Чтобы подписать документ, сбросьте файл подписи в выделенный прямоугольник. Файл подписи не будет передан на сервер.
-            После этого вы сможете ввести подписываемый документ и получить контрольную сумму (хеш) и числа S, R, удостоверяющие,
-            что именно вы подписали этот документ. Инструмент находится в разработке (бета).
-        </p>
+        <p data-bind="visible: dnd_visible, text: intro_1" ></p>
 
         <p data-bind="visible: error_visible">
             <span class="error" data-bind="visible: error_visible, text: error_text"></span>
@@ -29,8 +25,8 @@
 
         <pre id="pem_out" data-bind="text: pem_text, visible: pem_visible" ></pre>
         <div id="key_controls" data-bind="visible: key_controls_visible" >
-            <button id="do_sign" data-bind="click: do_sign">Подписать документ</button>
-            <button id="do_save" data-bind="click: do_save">Сохранить ключ</button>
+            <button id="do_sign" data-bind="click: do_sign, text: label_sign"></button>
+            <button id="do_save" data-bind="click: do_save, text: label_store"></button>
             <button id="as_pem" data-bind="click: show_pem">PEM</button>
         </div>
     </div>

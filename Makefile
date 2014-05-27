@@ -1,6 +1,6 @@
 all: build
 
-SRC=ui/ui.js ui/entry.js ui/keyholder.js ui/document.js ui/dstu.js ui/identity.js ui/certview.js ui/cert.js ui/stored.js
+SRC=ui/ui.js ui/entry.js ui/keyholder.js ui/document.js ui/dstu.js ui/identity.js ui/certview.js ui/cert.js ui/stored.js ui/locale.js ui/l10n.js
 NPM=node_modules/asn1.js/package.json node_modules/jkurwa/package.json
 build: js/build.js
 
@@ -15,4 +15,5 @@ js/build.js: $(SRC) $(NPM)
 		-r ./ui/certview.js:certui \
 		-r asn1.js \
 		-r buffer \
+		-r cookies-js \
 		-o $@
