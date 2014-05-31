@@ -4,7 +4,7 @@ var Curve = require('jkurwa'),
 
 var Keyholder = function(cb) {
     var ob, keycoder, certs,
-        have, signer, pem,
+        have, signer, pem, mini,
         ready_sign, have_local, save_cert,
         save_key,
         pub_compressed, cert_lookup;
@@ -124,6 +124,23 @@ var Keyholder = function(cb) {
 
         return new Curve.Priv(curve, p.param_d);
     };
+    mini = function(do_raw) {
+        var ret = '', raw='', bytes, i;
+        bytes = ob.key.param_d.toByteArray();
+
+        for(i=0; i<bytes.length; i++) {
+            if(bytes[i] < 0) {
+                bytes[i] = 255 + bytes[i];
+            }
+        }
+        raw = 'R' + b64_encode(bytes);
+
+        if(do_raw === true) {
+            ret = raw;
+        }
+
+        return ret;
+    };
     pem = function(what) {
         var ret = '';
         if(what === undefined) {
@@ -242,6 +259,7 @@ var Keyholder = function(cb) {
     ob = {
         have: have,
         get_pem: pem,
+        get_mini: mini,
         get_signer: signer,
         get_curve: get_curve,
         is_ready_sign: is_ready_sign,
