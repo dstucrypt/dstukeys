@@ -45,6 +45,14 @@
         <span data-bind="text: label"></span>
     </div>
 
+    <div id="qr" data-bind="visible: visible">
+        <video id="vid" autoplay></video>
+        <button data-bind="click: next">Rotate camera</button>
+        <canvas id="qr-canvas" width="800" height="600"></canvas>
+    </div>
+
+    <canvas id="qr-out" width="370" height="370" data-bind="visible: visible" ></canvas>
+
     <div id="password" class="modal" data-bind="visible: visible" style="display: none">
         <div id="password_in">
             <h2 data-bind="text: crypted_key_0"></h2>

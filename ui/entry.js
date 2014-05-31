@@ -9,6 +9,8 @@ var Curve = require('jkurwa'), priv=null,
     Password = require('./password.js').Password,
     Dnd = require('./dnd_ui.js').Dnd,
     locale = require("./locale.js"),
+    QRReader = require("./qr_read.js"),
+    QRWriter = require("./qr_write.js"),
     keys,
     doc,
     ident,
@@ -16,30 +18,9 @@ var Curve = require('jkurwa'), priv=null,
     langs,
     password,
     dnd,
+    qr_in,
+    qr_out,
     vm;
-
-var decode_import = function(indata, password) {
-        parsed = parser.parse(indata),
-        decoded;
-
-    decoded = dstu.decode_data(parsed, password);
-
-    if(decoded == undefined) {
-        return;
-    }
-    if(parser.is_valid(decoded) != true) {
-        return;
-    }
-    return util.numberB64(decoded, 42);
-}
-
-function decode_result(status, data) {
-    if(status == false) {
-        document.getElementById('pem_out').innerText = 'Err';
-    } else {
-        document.getElementById('pem_out').innerText = keycoder.to_pem(data);
-    }
-}
 
 function need_cb(evt) {
     if(evt.password === true) {
@@ -89,6 +70,10 @@ function password_cb(value) {
 function pem_cb() {
     var pem_data = keys.get_pem();
     vm.set_pem(pem_data);
+
+    var min = keys.get_mini(true);
+    qr_out.write(min);
+    qr_out.visible(true);
 }
 
 function to_storage() {
@@ -128,8 +113,22 @@ var change_locale = function(code) {
     locale.set_current(code);
 };
 
+var is_mobile = function() {
+    return (typeof window.orientation !== 'undefined');
+};
+
 var login_cb = function() {
     vm.big_visible(false);
+
+    if(false && is_mobile()) {
+        qr_in.visible(true);
+        try {
+            qr_in.start();
+        } catch(e) {
+            qr_in.visible(true);
+        }
+        return;
+    }
     dnd.visible(true);
 };
 
@@ -148,7 +147,18 @@ var publish_certificate = function() {
     });
 };
 
+var qr_input_cb = function(data) {
+    vm.pem_visible(true);
+    vm.pem_text(data);
+
+    qr_in.visible(false);
+};
+
 function setup() {
+    qr_in = new QRReader(document.getElementById('vid'),
+                document.getElementById('qr-canvas'),
+                qr_input_cb);
+    qr_out = QRWriter(document.getElementById('qr-out'));
     locale.set_current(locale.read());
     keys = new Keyholder({need: need_cb, feedback: feedback_cb});
     vm = new view.Main({
@@ -173,6 +183,9 @@ function setup() {
     ko.applyBindings(langs, document.getElementById("langs"));
     ko.applyBindings(password, document.getElementById("password"));
     ko.applyBindings(dnd, document.getElementById("dnd"));
+    ko.applyBindings(qr_in, document.getElementById("qr"));
+    ko.applyBindings(qr_out, document.getElementById("qr-out"));
+
 
     vm.visible(true);
 
