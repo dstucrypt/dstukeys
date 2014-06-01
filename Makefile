@@ -1,5 +1,14 @@
 all: build
 
+BUILD=debug
+
+ifeq ($(BUILD),release)
+BSIFY_OUT= | uglifyjs > 
+else
+BSIFY_OUT=-o 
+endif
+
+
 SRC=ui/ui.js \
 	ui/entry.js \
 	ui/certview.js \
@@ -38,12 +47,12 @@ js/build.js: $(SRC) $(NPM)
 		-r asn1.js \
 		-r buffer \
 		-r cookies-js \
-		-o $@
+		$(BSIFY_OUT) $@
 
 js/build_dstu.js: ./ui/dstu_worker.js $(SRC)
 	browserify \
 		--noparse=./node_modules/em-gost/lib/uadstu.js \
 		-r em-gost \
 		-r ./ui/dstu.js:dstu \
-		-o $@
+		$(BSIFY_OUT) $@
 	cat ./ui/dstu_worker.js >> $@
