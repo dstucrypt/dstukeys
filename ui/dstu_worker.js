@@ -1,3 +1,4 @@
+
 var dstu = require('dstu');
 onmessage = function(e) {
     var ret = dstu.onmessage(e);
