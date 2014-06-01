@@ -1,4 +1,13 @@
-require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"XhkdRT":[function(require,module,exports){
+require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"em-gost":[function(require,module,exports){
+module.exports=require('Sy95bQ');
+},{}],"Sy95bQ":[function(require,module,exports){
+var wrapper = require('./wrapper.js'),
+    c = require('./uadstu.js');
+
+module.exports = wrapper;
+module.exports.c = c;
+
+},{"./uadstu.js":3,"./wrapper.js":5}],3:[function(require,module,exports){
 // The Module object: Our interface to the outside world. We import
 // and export values on it, and do the work to get that through
 // closure compiler if necessary. There are various ways Module can be used:
@@ -15,7 +24,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 // before the code. Then that object will be used in the code, and you
 // can continue to use Module afterwards as well.
 var Module;
-if (!Module) Module = (typeof Module !== 'undefined' ? Module : null) || {};
+if (!Module) Module = (typeof emdstu !== 'undefined' ? emdstu : null) || {};
 
 // Sometimes an existing Module object exists with properties
 // meant to overwrite the default module functionality. Here
@@ -91,7 +100,7 @@ else if (ENVIRONMENT_IS_SHELL) {
     Module['arguments'] = arguments;
   }
 
-  this['Module'] = Module;
+  this['emdstu'] = Module;
 
   eval("if (typeof gc === 'function' && gc.toString().indexOf('[native code]') > 0) var gc = undefined"); // wipe out the SpiderMonkey shell 'gc' function, which can confuse closure (uses it as a minified name, and it is then initted to a non-falsey value unexpectedly)
 }
@@ -125,7 +134,7 @@ else if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
   }
 
   if (ENVIRONMENT_IS_WEB) {
-    window['Module'] = Module;
+    window['emdstu'] = Module;
   } else {
     Module['load'] = importScripts;
   }
@@ -7504,54 +7513,125 @@ run();
 
 
 
+
+/*
+ * em-gost is intended to work in browser environment
+ * and be packaged with browserify.
+ *
+ * However emscripten does not export module globals when
+ * running in browser.
+ *
+ * Contents of this file are added after library compilation
+ * result to fix this.
+ * */
+
 module.exports = Module;
 
 
 
-},{}],"c_dstu":[function(require,module,exports){
-module.exports=require('XhkdRT');
-},{}],"dstu":[function(require,module,exports){
-module.exports=require('rlFVlD');
-},{}],"rlFVlD":[function(require,module,exports){
+},{}],4:[function(require,module,exports){
+/*jslint plusplus: true */
+'use strict';
+
+var c = require('./uadstu.js');
+
+var read_buf = function (ptr, sz) {
+    var ret = [], x = 0, i;
+    for (i = 0; i < sz; i++) {
+        x = c.getValue(ptr + i, 'i8');
+        if (x < 0) {
+            x = 256 + x;
+        }
+        ret.push(x);
+    }
+    return ret;
+};
+
+var numberHex = function (numbrs, line) {
+    var hex = [], h, i;
+    for (i = 0; i < numbrs.length; i++) {
+        h = numbrs[i].toString(16);
+        if (h.length === 1) {
+            h = "0" + h;
+        }
+        hex.push(h);
+        if ((i > 1) && (line !== undefined) && ((i % line) === line - 1)) {
+            hex.push('\n');
+        }
+    }
+    return hex.join("");
+};
+
+var asnbuf = function (asn_l) {
+    var buf_len = 0, buf, off = 0,
+        i, j,
+        asn;
+
+    if ((asn_l.buffer !== undefined) || asn_l.offset !== undefined) {
+        asn_l = [asn_l];
+    }
+
+    for (i = 0; i < asn_l.length; i++) {
+        buf_len += asn_l[i].length;
+    }
+
+    buf = c.allocate(buf_len, 'i8', c.ALLOC_STACK);
+
+    for (j = 0; j < asn_l.length; j++) {
+        asn = asn_l[j];
+        for (i = 0; i < asn.length; i++) {
+            c.setValue(buf + i + off, asn[i], 'i8');
+        }
+        off += i;
+    }
+    return buf;
+};
+
+exports.asnbuf = asnbuf;
+exports.read_buf = read_buf;
+
+},{"./uadstu.js":3}],5:[function(require,module,exports){
 (function (Buffer){
 /*
  *
  * Interface code for emscripten-compiled gost89 (dstu200) code
  *
  * */
-var util = require('./util.js');
-var c = require('c_dstu');
+'use strict';
 
-var convert_password = function(parsed, pw, raw) {
-    var vm_out, vm_pw, vm_salt, args, argtypes, ret = null;
+var util = require('./util.js');
+var c = require('./uadstu.js');
+
+var convert_password = function (parsed, pw, raw) {
+    var vm_out, vm_pw, args, argtypes, ret = null;
     vm_out = c.allocate(32, 'i8', c.ALLOC_STACK);
     vm_pw = c.allocate(c.intArrayFromString(pw), 'i8', c.ALLOC_STACK);
-    if(parsed.format == 'IIT') {
+    if (parsed.format === 'IIT') {
         args = [vm_pw, pw.length, vm_out];
         argtypes = ['number', 'number', 'number'];
 
         ret = c.ccall('iit_convert_password', 'number', argtypes, args);
     }
-    if(parsed.format == 'PBES2') {
+    if (parsed.format === 'PBES2') {
         args = [vm_pw, pw.length, util.asnbuf(parsed.salt), parsed.salt.length, parsed.iters, vm_out];
         argtypes = ['number', 'number', 'number', 'number', 'number'];
-        ret = Module.ccall('pbes2_convert_password', 'number', argtypes, args);
+        ret = c.ccall('pbes2_convert_password', 'number', argtypes, args);
     }
-    if(ret == 0) {
-        if(raw === true) {
+    if (ret === 0) {
+        if (raw === true) {
             return vm_out;
-        } else {
-            return util.read_buf(vm_out, 32);
         }
-    } else {
-        throw new Error("Failed to convert key");
+        return util.read_buf(vm_out, 32);
     }
-}
-var decode_data = function(parsed, pw) {
-    var args, argtypes, bdata, bkey, bmac, rbuf, ret;
+
+    throw new Error("Failed to convert key");
+};
+
+var decode_data = function (parsed, pw) {
+    var args, argtypes, bkey, rbuf, ret;
 
     bkey = convert_password(parsed, pw, true);
-    if(parsed.format === 'IIT') {
+    if (parsed.format === 'IIT') {
         rbuf = c.allocate(parsed.body.length + parsed.pad.length, 'i8', c.ALLOC_STACK);
         args = [
             util.asnbuf([parsed.body, parsed.pad]), parsed.body.length,
@@ -7560,10 +7640,10 @@ var decode_data = function(parsed, pw) {
             rbuf
         ];
         argtypes = ['number', 'number', 'number', 'number'];
-        ret = c.ccall('iit_decode_data', 'number', argtypes, args)
+        ret = c.ccall('iit_decode_data', 'number', argtypes, args);
     }
-    if(parsed.format == 'PBES2') {
-        rbuf = allocate(parsed.body.length, 'i8', ALLOC_STACK);
+    if (parsed.format === 'PBES2') {
+        rbuf = c.allocate(parsed.body.length, 'i8', c.ALLOC_STACK);
         args = [
             util.asnbuf(parsed.body), parsed.body.length,
             bkey,
@@ -7572,17 +7652,17 @@ var decode_data = function(parsed, pw) {
             rbuf
         ];
         argtypes = ['number', 'number', 'number', 'number', 'number', 'number'];
-        ret = Module.ccall('pbes2_decode_data', 'number', argtypes, args);
+        ret = c.ccall('pbes2_decode_data', 'number', argtypes, args);
 
     }
-    if(ret == 0) {
+    if (ret === 0) {
         return util.read_buf(rbuf, parsed.body.length, 'hex');
     }
-}
+};
 
-var compute_hash = function(contents) {
+var compute_hash = function (contents) {
     var args, argtypes, vm_contents, rbuf, err, ret, buffer;
-    if((typeof contents) === 'string') {
+    if ((typeof contents) === 'string') {
         buffer = new Buffer(contents);
     } else {
         buffer = contents;
@@ -7592,17 +7672,15 @@ var compute_hash = function(contents) {
     args = [vm_contents, contents.length, rbuf];
     argtypes = ['number', 'number', 'number'];
     err = c.ccall('compute_hash', 'number', argtypes, args);
-    if(err === 0) {
+    if (err === 0) {
         ret = util.read_buf(rbuf, 32);
-        console.log("hash output: " + ret);
-        console.log("hash input: " + contents);
         return ret;
     }
     throw new Error("Document hasher failed");
-}
+};
 
-var gost_unwrap = function(kek, wcek) {
-    var args, argtypes, vm_kek, vm_wcek, rbuf, err, ret;
+var gost_unwrap = function (kek, wcek) {
+    var args, argtypes, vm_kek, vm_wcek, rbuf, err;
 
     rbuf = c.allocate(32, 'i8', c.ALLOC_STACK);
     vm_kek = c.allocate(kek, 'i8', c.ALLOC_STACK);
@@ -7610,22 +7688,42 @@ var gost_unwrap = function(kek, wcek) {
     args = [vm_wcek, vm_kek, rbuf];
     argtypes = ['number', 'number', 'number'];
     err = c.ccall('gost_key_unwrap', 'number', argtypes, args);
-    if(err === 0) {
+    if (err === 0) {
         return util.read_buf(rbuf, 32);
     }
     throw new Error("Key unwrap failed");
 };
 
-var gost_kdf = function(buffer) {
+var gost_kdf = function (buffer) {
     return compute_hash(buffer);
 };
 
+module.exports.decode_data = decode_data;
+module.exports.convert_password = convert_password;
+module.exports.compute_hash = compute_hash;
+module.exports.gost_kdf = gost_kdf;
+module.exports.gost_unwrap = gost_unwrap;
+
+}).call(this,require("buffer").Buffer)
+},{"./uadstu.js":3,"./util.js":4,"buffer":8}],"dstu":[function(require,module,exports){
+module.exports=require('rlFVlD');
+},{}],"rlFVlD":[function(require,module,exports){
+/*
+ *
+ * Interface code for emscripten-compiled gost89 (dstu200) code
+ *
+ * */
+
+var em_gost = require('em-gost'),
+    worker = null;
+
 var decode_data_wrap = function(data, password, cb) {
-    var worker;
     try {
-        worker = new Worker(DSTU_WORKER_URL);
+        if(worker === null) {
+            worker = new Worker(DSTU_WORKER_URL);
+        }
     } catch (e) {
-        return cb(decode_data(data, password));
+        return cb(em_gost.decode_data(data, password));
     }
     worker.onmessage = function(e) {
         cb(e.data.ret);
@@ -7636,75 +7734,19 @@ var decode_data_wrap = function(data, password, cb) {
 
 var onmessage = function(e) {
     var msg = e.data;
-    return decode_data(msg.data, msg.password);
+    return em_gost.decode_data(msg.data, msg.password);
 };
 
+// wrap blocking function with worker cb
 module.exports.decode_data = decode_data_wrap;
-module.exports.do_decode_data = decode_data;
-module.exports.convert_password = convert_password;
-module.exports.compute_hash = compute_hash
+
 module.exports.onmessage = onmessage;
-module.exports.gost_kdf = gost_kdf;
-module.exports.gost_unwrap = gost_unwrap;
 
-}).call(this,require("buffer").Buffer)
-},{"./util.js":5,"buffer":6,"c_dstu":"XhkdRT"}],5:[function(require,module,exports){
-var c = require('../js/uadstu.js');
+// reexport nonwrapped
+module.exports.convert_password = em_gost.convert_password;
+module.exports.compute_hash = em_gost.compute_hash
 
-var read_buf = function(ptr, sz) {
-    var ret = [], x=0;
-    for(var i = 0; i < sz; i++) {
-        x = c.getValue(ptr + i, 'i8');
-        if(x < 0) {
-            x = 256 + x;
-        }
-        ret.push(x);
-    }
-    return ret;
-}
-var numberHex = function(numbrs, line) {
-    var hex = [], h;
-    for(var i = 0; i < numbrs.length; i++) {
-        h = numbrs[i].toString(16);
-        if(h.length == 1) {
-            h = "0" + h;
-        }
-        hex.push(h); 
-        if( (i > 1) && (line !== undefined) && ((i%line) == line-1)) {
-            hex.push('\n');
-        }
-    }
-    return hex.join("");
-}
-
-var asnbuf = function(asn_l) {
-    var buf_len = 0, buf, start, end, off = 0,
-        start, end;
-
-    if((asn_l.buffer !== undefined) || asn_l.offset !== undefined) {
-        asn_l = [asn_l];
-    }
-
-    for(var i = 0; i < asn_l.length; i++) {
-        buf_len += asn_l[i].length;
-    }
-
-    buf = c.allocate(buf_len, 'i8', c.ALLOC_STACK);
-
-    for(var j = 0; j < asn_l.length; j++) {
-        var asn = asn_l[j], i;
-        for(i = 0; i < asn.length; i++) {
-            c.setValue(buf + i + off, asn[i], 'i8');
-        }
-        off += i;
-    }
-    return buf;
-}
-
-exports.asnbuf = asnbuf
-exports.read_buf = read_buf
-
-},{"../js/uadstu.js":"XhkdRT"}],6:[function(require,module,exports){
+},{"em-gost":"Sy95bQ"}],8:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -8854,7 +8896,7 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":7,"ieee754":8}],7:[function(require,module,exports){
+},{"base64-js":9,"ieee754":10}],9:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -8977,7 +9019,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	module.exports.fromByteArray = uint8ToBase64
 }())
 
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
