@@ -11,7 +11,8 @@ SRC=ui/ui.js \
 	ui/stored.js \
 	ui/password.js \
 	ui/dnd_ui.js \
-	ui/locale.js ui/l10n.js ui/langs.js
+	ui/locale.js ui/l10n.js ui/langs.js \
+	js/uadstu.js
 
 NODE_PACKAGES = asn1.js jsqrcode qrcode-js cookies-js jkurwa
 
@@ -28,6 +29,8 @@ node_modules/jkurwa/package.json:
 
 js/build.js: $(SRC) $(NPM)
 	browserify \
+		--noparse=./js/uadstu.js \
+		-r ./js/uadstu.js:c_dstu \
 		-r jkurwa \
 		-r ./ui/entry.js:ui \
 		-r ./ui/certview.js:certui \
@@ -38,7 +41,8 @@ js/build.js: $(SRC) $(NPM)
 
 js/build_dstu.js: ./ui/dstu_worker.js $(SRC)
 	browserify \
+		--noparse=./js/uadstu.js \
+		-r ./js/uadstu.js:c_dstu \
 		-r ./ui/dstu.js:dstu \
 		-o $@
-	cat ./js/uadstu.js >> $@
 	cat ./ui/dstu_worker.js >> $@
