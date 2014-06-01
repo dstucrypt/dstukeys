@@ -35,6 +35,7 @@ var Document = function(cb) {
         do_sign: do_sign,
         sign: sign,
         set_sign: set_sign,
+        document_text: document_text,
     };
     return ob;
 }
