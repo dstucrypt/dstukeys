@@ -19,6 +19,7 @@ SRC=ui/ui.js \
 	ui/stored.js \
 	ui/password.js \
 	ui/dnd_ui.js \
+	ui/decrypt.js \
 	ui/locale.js ui/l10n.js ui/langs.js \
 	ui/dstu.js
 

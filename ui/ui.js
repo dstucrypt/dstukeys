@@ -34,6 +34,9 @@ var Main = function (cb) {
     var do_pub = function() {
         cb.cert_pub();
     };
+    var do_decrypt = function() {
+        cb.decrypt_box();
+    };
 
     var set_pem = function(val) {
         if(val === undefined) {
@@ -63,9 +66,11 @@ var Main = function (cb) {
         do_pub: do_pub,
         do_sign: do_sign,
         do_login: do_login,
+        do_decrypt: do_decrypt,
         label_sign: _label('add_sign'),
         label_store: _label('to_store'),
         label_publish: _label('label_publish'),
+        label_decrypt: _label('label_decrypt'),
         set_pem: set_pem,
         pem_text: pem_text,
         pem_visible: pem_visible,

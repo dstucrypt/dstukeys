@@ -1,4 +1,5 @@
-var Curve = require('jkurwa'), priv=null,
+var jk = require('jkurwa'),
+    Curve = jk.Curve, priv=null,
     view = require('./ui.js'),
     dstu = require('./dstu.js'),
     docview = require('./document.js'),
@@ -8,6 +9,7 @@ var Curve = require('jkurwa'), priv=null,
     Langs = require('./langs.js').Langs,
     Password = require('./password.js').Password,
     Dnd = require('./dnd_ui.js').Dnd,
+    Decrypt = require('./decrypt.js'),
     locale = require("./locale.js"),
     QRReader = require("./qr_read.js"),
     QRWriter = require("./qr_write.js"),
@@ -18,6 +20,7 @@ var Curve = require('jkurwa'), priv=null,
     langs,
     password,
     dnd,
+    decrypt,
     qr_in,
     qr_out,
     vm;
@@ -80,20 +83,43 @@ function to_storage() {
     keys.save_key();
 }
 
-function sign_box() {
+function hide_all() {
     dnd.visible(false);
     vm.pem_visible(false);
     vm.error_visible(false);
     vm.key_controls_visible(false);
     vm.key_info_visible(false);
     vm.visible(false);
+    stored.needed(false);
+
+    decrypt.visible(false);
+};
+
+function main_screen() {
+    hide_all();
+    stored.needed(true);
+    vm.key_controls_visible(true);
+    vm.visible(true);
+};
+
+function sign_box() {
+    hide_all();
     doc.visible(true);
-}
+};
+
+function decrypt_box() {
+    hide_all();
+    decrypt.visible(true);
+    vm.error_visible(true);
+    dnd.setup_cb(message_dropped);
+    dnd.state(2);
+    dnd.visible(true);
+};
 
 function sign_cb(contents) {
     var hash = dstu.compute_hash(contents);
     hash = [0].concat(hash);
-    var hash_bn = new Curve.Big(hash);
+    var hash_bn = new jk.Big(hash);
     var priv = keys.get_signer();
     var sign = priv.sign(hash_bn);
     doc.set_sign(hash_bn, sign.s, sign.r);
@@ -154,6 +180,19 @@ var qr_input_cb = function(data) {
     qr_in.visible(false);
 };
 
+var message_dropped = function(u8) {
+    var clear;
+    decrypt.error("");
+    try {
+        clear = Decrypt.decrypt_buffer(u8, keys);
+    } catch(exc) {
+        console.log("exc " + exc.toString());
+        return decrypt.error(exc.toString());
+    }
+    document.location = 'data:application/octet-stream;base64,' + jk.b64_encode(clear);
+    main_screen();
+};
+
 function setup() {
     qr_in = new QRReader(document.getElementById('vid'),
                 document.getElementById('qr-canvas'),
@@ -166,6 +205,7 @@ function setup() {
         pem: pem_cb,
         to_storage: to_storage,
         sign_box: sign_box,
+        decrypt_box: decrypt_box,
         login: login_cb,
         cert_pub: publish_certificate,
     });
@@ -175,6 +215,9 @@ function setup() {
     langs = new Langs(['UA', 'RU'], {changed: change_locale});
     password = new Password(password_cb);
     dnd = new Dnd();
+    decrypt = new Decrypt({
+        close: main_screen,
+    });
     dnd.stored = stored;
     dnd.setup(file_dropped);
     ko.applyBindings(vm, document.getElementById("ui"));
@@ -183,6 +226,7 @@ function setup() {
     ko.applyBindings(langs, document.getElementById("langs"));
     ko.applyBindings(password, document.getElementById("password"));
     ko.applyBindings(dnd, document.getElementById("dnd"));
+    ko.applyBindings(decrypt, document.getElementById("decrypt"));
     ko.applyBindings(qr_in, document.getElementById("qr"));
     ko.applyBindings(qr_out, document.getElementById("qr-out"));
 

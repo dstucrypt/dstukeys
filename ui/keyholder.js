@@ -1,5 +1,6 @@
-var Curve = require('jkurwa'),
-    b64_encode = Curve.b64_encode,
+var jk = require('jkurwa'),
+    Curve = jk.Curve,
+    b64_encode = jk.b64_encode,
     dstu = require('./dstu.js');
 
 var Keyholder = function(cb) {
@@ -9,7 +10,7 @@ var Keyholder = function(cb) {
         save_key,
         pub_compressed, cert_lookup;
 
-    keycoder = new Curve.Keycoder();
+    keycoder = new jk.Keycoder();
     certs = {};
     is_ready_sign = function() {
         return (
@@ -20,7 +21,7 @@ var Keyholder = function(cb) {
     };
     pub_compressed = function(p) {
         var key_curve = ob.get_curve(p);
-        var key_priv = Curve.Priv(key_curve, ob.key.param_d);
+        var key_priv = jk.Priv(key_curve, ob.key.param_d);
         var key_pub = key_priv.pub();
         var point_cmp = key_pub.point.compress();
 
@@ -28,7 +29,7 @@ var Keyholder = function(cb) {
     };
     cert_key_match = function(key, cert) {
         var key_curve = ob.get_curve(key);
-        var key_priv = Curve.Priv(key_curve, ob.key.param_d);
+        var key_priv = jk.Priv(key_curve, ob.key.param_d);
         var key_pub = key_priv.pub();
         var key_pub_compressed = key_pub.point.compress(key);
 
@@ -118,11 +119,11 @@ var Keyholder = function(cb) {
             base: p.curve.base,
         });
     };
-    signer = function() {
-        var p = ob.key;
+    signer = function(p) {
+        var p = p || ob.key;
         var curve = ob.get_curve(p);
 
-        return new Curve.Priv(curve, p.param_d);
+        return new jk.Priv(curve, p.param_d);
     };
     mini = function(do_raw) {
         var ret = '', raw='', bytes, i;

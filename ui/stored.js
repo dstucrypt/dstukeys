@@ -57,7 +57,8 @@ var Stored = function(evt) {
         }
     };
     var visible = ko.computed(function() {
-        return items().length > 0 && needed();
+        var n = needed();
+        return items().length > 0 && n;
     }, this);
 
     ob = {

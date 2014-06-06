@@ -12,9 +12,10 @@ var Dnd = function(cb) {
         visible: visible,
         state: state,
         text: _label('dnd', state),
-        intro_1: _label('intro_1'),
-        title_dnd: _label('title_dnd'),
+        intro_1: _label('intro', state),
+        title_dnd: _label('title_dnd', state),
         setup: dnd.setup,
+        setup_cb: dnd.setup_cb,
     }; 
     return ob;
 }

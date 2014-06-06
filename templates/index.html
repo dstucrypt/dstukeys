@@ -22,6 +22,7 @@
         <pre id="pem_out" data-bind="text: pem_text, visible: pem_visible" ></pre>
         <div id="key_controls" data-bind="visible: key_controls_visible" >
             <button id="do_sign" data-bind="click: do_sign, text: label_sign"></button>
+            <button id="do_decrypt" data-bind="click: do_decrypt, text: label_decrypt"></button>
             <button id="do_save" data-bind="click: do_save, text: label_store"></button>
             <button id="do_pub" data-bind="click: do_pub, text: label_publish"></button>
             <button id="as_pem" data-bind="click: show_pem">PEM</button>
@@ -45,13 +46,18 @@
         <span data-bind="text: label"></span>
     </div>
 
-    <div id="qr" data-bind="visible: visible">
+    <div id="decrypt" data-bind="visible: visible" style="display: none">
+        <span data-bind="click: close">[ X ]</span>
+        <pre data-bind="text: error"></pre>
+    </div>
+
+    <div id="qr" data-bind="visible: visible" style="display: none">
         <video id="vid" autoplay></video>
         <button data-bind="click: next">Rotate camera</button>
         <canvas id="qr-canvas" width="800" height="600"></canvas>
     </div>
 
-    <canvas id="qr-out" width="370" height="370" data-bind="visible: visible" ></canvas>
+    <canvas id="qr-out" width="370" height="370" data-bind="visible: visible" style="display: none" ></canvas>
 
     <div id="password" class="modal" data-bind="visible: visible" style="display: none">
         <div id="password_in">
@@ -68,7 +74,8 @@
 
         <div id="drop_zone" data-bind="text: text" ></div>
 
-        <div id="stored" data-bind="with: stored, visible: visible">
+        <div data-bind="with: stored">
+        <div id="stored" data-bind="visible: visible">
             <h3 data-bind="text: avail_certs"></h3>
 
             <div data-bind="foreach: items" >
@@ -78,6 +85,7 @@
                     <!-- <span data-bind="click: remove">REMOVE</span> -->
                 </div>
             </div>
+        </div>
         </div>
     </div>
 
