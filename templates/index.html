@@ -9,7 +9,9 @@
 
     <div id="ui" data-bind="visible: visible" style="display: none">
         <!-- <p data-bind="text: intro_0"></p> -->
-        <p class="big" data-bind="text: login, click: do_login, visible: big_visible"></p>
+        <p class="big" data-bind="visible: big_visible">
+            <a href="#" data-bind="text: login, click: do_login" ></a>
+        </p>
 
         <p data-bind="visible: error_visible">
             <span class="error" data-bind="visible: error_visible, text: error_text"></span>
