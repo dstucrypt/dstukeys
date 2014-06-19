@@ -39,6 +39,8 @@ node_modules/em-gost/package.json:
 	npm install https://github.com/muromec/em-gost/tarball/master
 
 js/build.js: $(SRC) $(NPM)
+	cat ./node_modules/asn1.js/lib/asn1.js | sed 's,asn1.bignum = r,throw new Error();//,' > ./node_modules/asn1.js/lib/asn1.js_fix
+	mv ./node_modules/asn1.js/lib/asn1.js_fix ./node_modules/asn1.js/lib/asn1.js
 	browserify \
 		--noparse=./node_modules/em-gost/lib/uadstu.js \
 		-r em-gost \
