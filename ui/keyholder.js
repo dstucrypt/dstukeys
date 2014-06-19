@@ -153,6 +153,11 @@ var Keyholder = function(cb) {
             ret += '\n';
         }
 
+        if(what.raw_key === true) {
+            ret = keycoder.to_pem(b64_encode(ob.raw_key, 42));
+            ret += '\n';
+        }
+
         if(what.cert === true) {
             ret = keycoder.to_pem(b64_encode(ob.raw_cert, 42), 'CERTIFICATE');
             ret += '\n';

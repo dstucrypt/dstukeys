@@ -71,7 +71,7 @@ function password_cb(value) {
 }
 
 function pem_cb() {
-    var pem_data = keys.get_pem();
+    var pem_data = keys.get_pem({raw_key: true});
     vm.set_pem(pem_data);
 
     var min = keys.get_mini(true);
