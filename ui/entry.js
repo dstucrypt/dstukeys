@@ -118,11 +118,9 @@ function decrypt_box() {
 
 function sign_cb(contents) {
     var hash = dstu.compute_hash(contents);
-    hash = [0].concat(hash);
-    var hash_bn = new jk.Big(hash);
     var priv = keys.get_signer();
-    var sign = priv.sign(hash_bn);
-    doc.set_sign(hash_bn, sign.s, sign.r);
+    var sign = priv.sign(hash);
+    doc.set_sign(sign.hash, sign.s, sign.r);
 }
 
 function file_dropped(u8) {

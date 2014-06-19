@@ -20,16 +20,14 @@ var Keyholder = function(cb) {
         )
     };
     pub_compressed = function(p) {
-        var key_curve = ob.get_curve(p);
-        var key_priv = jk.Priv(key_curve, ob.key.param_d);
+        var key_priv = p;
         var key_pub = key_priv.pub();
         var point_cmp = key_pub.point.compress();
 
         return point_cmp.toString(16);
     };
     cert_key_match = function(key, cert) {
-        var key_curve = ob.get_curve(key);
-        var key_priv = jk.Priv(key_curve, ob.key.param_d);
+        var key_priv = key;
         var key_pub = key_priv.pub();
         var key_pub_compressed = key_pub.point.compress(key);
 
@@ -60,14 +58,31 @@ var Keyholder = function(cb) {
         ob.key_info.format = parsed.format;
 
         switch(parsed.format) {
-        case 'privkey':
+        case 'privkeys':
             ob.raw_key = data;
-            ob.key = parsed;
+            ob.keystore = parsed;
             cb.feedback({key: true});
+
             if(ob.cert === undefined) {
-                if(ob.cert_lookup(ob.pub_compressed(ob.key))) {
+                var key = parsed.keys[0]; // select first
+
+                if(ob.cert_lookup(ob.pub_compressed(key))) {
+                    ob.key = key;
                     cb.feedback({cert: true});
                 } else {
+                    cb.need({cert: true});
+                }
+            } else {
+                var idx, key, point_str;
+                for(idx = 0; idx < parsed.keys.length; idx++) {
+                    key = parsed.keys[idx];
+                    if(ob.cert.pubkey.toString(16) == ob.pub_compressed(key)) {
+                        ob.key = key;
+                        cb.feedback({cert: true});
+                        break;
+                    }
+                }
+                if(ob.key === undefined) {
                     cb.need({cert: true});
                 }
             }
@@ -107,23 +122,8 @@ var Keyholder = function(cb) {
             dstu.decode_data(ob.encrypted_key, data.password, have_password);
         }
     };
-    get_curve = function(p) {
-
-        return curve = new Curve({
-            a: p.curve.a,
-            b: p.curve.b,
-            m: p.curve.m,
-            k1: p.curve.k1,
-            k2: 0,
-            order: p.curve.order,
-            base: p.curve.base,
-        });
-    };
     signer = function(p) {
-        var p = p || ob.key;
-        var curve = ob.get_curve(p);
-
-        return new jk.Priv(curve, p.param_d);
+        return p || ob.key;
     };
     mini = function(do_raw) {
         var ret = '', raw='', bytes, i;
@@ -267,7 +267,6 @@ var Keyholder = function(cb) {
         get_pem: pem,
         get_mini: mini,
         get_signer: signer,
-        get_curve: get_curve,
         is_ready_sign: is_ready_sign,
         cert_key_match: cert_key_match,
         pub_compressed: pub_compressed,
