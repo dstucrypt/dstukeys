@@ -55,11 +55,11 @@ var decrypt_buffer = function(u8, keys) {
     wcek = msg.rki.recipientEncryptedKeys[0].encryptedKey;
 
     try {
-        cek = new Buffer(em_gost.gost_unwrap(kek, wcek));
+        cek = em_gost.gost_unwrap(kek, wcek);
     } catch (e) {
         throw new Error("wailed to decrypt cek. key mismatch?");
     }
-    return new Buffer(em_gost.gost_decrypt_cfb(msg.enc_contents, cek, msg.enc_params.iv));
+    return em_gost.gost_decrypt_cfb(msg.enc_contents, cek, msg.enc_params.iv);
 };
 
 module.exports = Decrypt;
