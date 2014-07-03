@@ -25,7 +25,7 @@ def ctx_util():
     }
 
 
-@app.route("/")
+@app.route("/toolbox/")
 def index():
     return render_template("index.html")
 
